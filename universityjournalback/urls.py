@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import get_first_user
+from .views import add_role_to_user
 
 urlpatterns = [
-    path('api/user/first/', get_first_user, name='get_first_user'),
+    path('api/user/<int:user_id>/add_role/', add_role_to_user, name='add_role_to_user'),
 ]
+
 

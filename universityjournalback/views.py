@@ -1,10 +1,12 @@
-from universityjournalback.models import Role, User
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import User
+from .serializers import UserSerializer
 
-admin_role = Role.objects.create(role="Admin")
-
-user = User.objects.create(username="Kate", password="securepassword")
-
-user.role.add(admin_role)
-
-print(User.objects.all())
-print(user.role.all())
+@api_view(['GET'])
+def get_first_user(request):
+    user = User.objects.first()  # Получаем первого пользователя
+    if user:
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    return Response({'error': 'Нет пользователей в базе'}, status=404)

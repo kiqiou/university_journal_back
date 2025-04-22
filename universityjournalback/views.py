@@ -27,14 +27,22 @@ def register_user(request):
     try:
         username = request.data.get('username')
         password = request.data.get('password')
+        role_ids = request.data.get('role_ids', [])
 
         if not username or not password:
             return Response({'error': 'Имя и пароль обязательны'}, status=400)
 
-        user = User.objects.create(
-            username=username,
-            password=make_password(password) 
-        )
+        # Создание нового пользователя (без хеширования здесь!)
+        user = User(username=username, password=password)
+        user.save()  # Здесь произойдёт правильное хеширование
+
+        # Добавление ролей
+        roles = Role.objects.filter(id__in=role_ids)
+        if not roles:
+            return Response({'error': 'Некорректные ID ролей'}, status=400)
+
+        user.role.set(roles)
+        user.save()
 
         return Response(UserSerializer(user).data, status=201)
 

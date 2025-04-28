@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'universityjournalback',
+    'authentication',
 ]
 
 MIDDLEWARE = [
@@ -95,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'universityjournalback.User'
+AUTH_USER_MODEL = 'authentication.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

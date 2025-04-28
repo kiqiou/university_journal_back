@@ -1,20 +1,29 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import AbstractBaseUser
+from authentication.models import User
 
-class Role(models.Model):
-    role = models.CharField(max_length=100)
+class Course(models.Model):
+    name = models.CharField(max_length=255)
 
-class User(AbstractBaseUser):
-    username = models.CharField(max_length=100, null=False, blank=False, unique=True)
-    password = models.TextField(null=False, blank=False)
-    role = models.ManyToManyField(Role)
-
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = []
+class Session(models.Model):
+    TYPE_CHOICES = [
+        ('Лекция', 'Лекция'),
+        ('Практика', 'Практика'),
+        ('Семинар', 'Семинар'),
+        ('Лабораторная', 'Лабораторная'),
+        ('Аттестация', 'Аттестация'),
+    ]
     
-    def save(self, *args, **kwargs):
-        if not self.password.startswith('pbkdf2_'):
-            self.set_password(self.password)
-        super().save(*args, **kwargs)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    date = models.DateField()
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES)
 
+class Attendance(models.Model):
+    STATUS_CHOICES = [
+        ('н', 'Отсутствовал'),
+        ('п', 'Присутствовал'),
+    ]
+
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'Студент'})
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    grade = models.IntegerField(null=True, blank=True) 

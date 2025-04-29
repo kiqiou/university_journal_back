@@ -51,6 +51,7 @@ def login_user(request):
 
         if not user or not check_password(password, user.password):
             return Response({'error': 'Неверное имя пользователя или пароль'}, status=400)
+        print(f"Сериализованные данные: {UserSerializer(user).data}")
 
         return Response({'message': 'Успешный вход', 'user': UserSerializer(user).data}, status=200)
     except Exception as e:

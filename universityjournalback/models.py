@@ -13,7 +13,7 @@ class Session(models.Model):
         ('Аттестация', 'Аттестация'),
     ]
     
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sessions")
     date = models.DateField()
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
 

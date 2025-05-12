@@ -72,7 +72,7 @@ DATABASES = {
         'NAME': 'university_journal',
         'USER': 'postgres',
         'PASSWORD': '177886936',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }

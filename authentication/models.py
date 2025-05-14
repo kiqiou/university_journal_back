@@ -20,4 +20,4 @@ class User(AbstractBaseUser):
         if not self.password.startswith('pbkdf2_'):
             self.set_password(self.password)
         super().save(*args, **kwargs)
-
+    

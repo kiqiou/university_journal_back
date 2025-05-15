@@ -1,8 +1,9 @@
 from django.db import models
-from authentication.models import User
+from authentication.models import User, Group
 
 class Course(models.Model):
     name = models.CharField(max_length=255)
+    groups = models.ManyToManyField(Group, related_name='courses')
 
 class Session(models.Model):
     TYPE_CHOICES = [

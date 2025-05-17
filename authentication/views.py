@@ -11,6 +11,7 @@ from rest_framework import status
 @api_view(['POST'])
 def register_user(request):
     try:
+        print(f"request.data: {request.data}")
         username = request.data.get('username')
         password = request.data.get('password')
         role_id = request.data.get('role_id')
@@ -38,7 +39,6 @@ def register_user(request):
 
 @api_view(['POST'])
 def login_user(request):
-
     try:
         username = request.data.get('username', '')
         password = request.data.get('password', '')
@@ -62,4 +62,6 @@ class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({"detail": "Успешный выход"}, status=status.HTTP_200_OK)
+    
+
 

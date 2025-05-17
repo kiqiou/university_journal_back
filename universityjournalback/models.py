@@ -4,6 +4,7 @@ from authentication.models import User, Group
 class Course(models.Model):
     name = models.CharField(max_length=255)
     groups = models.ManyToManyField(Group, related_name='courses')
+    teachers = models.ManyToManyField(User, limit_choices_to={'role': 'Преподаватель'})
 
 class Session(models.Model):
     TYPE_CHOICES = [

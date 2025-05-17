@@ -1,5 +1,8 @@
+from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from authentication.serializers import UserSerializer
 from .models import Attendance, Course, Session, User
 from .serializers import AttendanceSerializer, SessionSerializer
 
@@ -54,5 +57,28 @@ def delete_session(request):
         return Response({'message': 'Сессия успешно удалена'}, status=200)
     except Session.DoesNotExist:
         return Response({'error': 'Сессия не найдена'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+    
+@api_view(['POST'])
+def get_teacher_list(request):
+    try:
+        teachers_list = User.objects.filter(role__role="Преподаватель")
+        serializer = UserSerializer(teachers_list, many=True)
+        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
+@api_view(['POST'])
+def delete_user(request):
+    user_id = request.data.get('user_id')
+    if not user_id:
+        return Response({'error': 'ID сессии обязателен'}, status=400)
+    try:
+        user = User.objects.get(id=user_id)
+        user.delete()
+        return Response({'message': 'Преподаватель успешно удален'}, status=200)
+    except Session.DoesNotExist:
+        return Response({'error': 'Преподаватель не найден'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

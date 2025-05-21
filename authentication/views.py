@@ -1,6 +1,7 @@
+from email.headerregistry import Group
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import User, Role
+from .models import StudentProfile, TeacherProfile, User, Role
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout
@@ -11,10 +12,12 @@ from rest_framework import status
 @api_view(['POST'])
 def register_user(request):
     try:
-        print(f"request.data: {request.data}")
         username = request.data.get('username')
         password = request.data.get('password')
         role_id = request.data.get('role_id')
+        group_id = request.data.get('group_id')
+        position = request.data.get('position')
+        bio = request.data.get('bio')
 
         if not username or not password or not role_id:
             return Response({'error': 'Имя, пароль и ID роли обязательны'}, status=400)
@@ -29,13 +32,27 @@ def register_user(request):
             return Response({'error': 'Некорректный ID роли'}, status=400)
 
         user = User(username=username, role=role)
-        user.set_password(password) 
+        user.set_password(password)
         user.save()
+
+        if role.role.lower() == 'преподаватель':
+            if not position or not bio:
+                return Response({'error': 'Для преподавателя необходимы "position" и "bio"'}, status=400)
+            TeacherProfile.objects.create(user=user, position=position, bio=bio)
+
+        elif role.role.lower() == 'студент':
+            if not group_id:
+                return Response({'error': 'Для студента необходимо указать group_id'}, status=400)
+            group = Group.objects.filter(id=group_id).first()
+            if not group:
+                return Response({'error': 'Некорректный group_id'}, status=400)
+            StudentProfile.objects.create(user=user, group=group)
 
         return Response(UserSerializer(user).data, status=201)
 
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
 
 @api_view(['POST'])
 def login_user(request):

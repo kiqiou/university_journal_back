@@ -15,6 +15,7 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
         fields = ['position', 'bio']
 
 class StudentProfileSerializer(serializers.ModelSerializer):
+    group = serializers.IntegerField(source='group.id', read_only=True)
     group_name = serializers.CharField(source='group.group_name', read_only=True)
 
     class Meta:
@@ -24,7 +25,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     teacher_profile = TeacherProfileSerializer(read_only=True)
     student_profile = StudentProfileSerializer(read_only=True)
-    role = RoleSerializer(read_only=True)  # ⬅️ Здесь возвращаем весь объект
+    role = RoleSerializer(read_only=True)
 
     class Meta:
         model = User

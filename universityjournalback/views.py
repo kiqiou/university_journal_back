@@ -33,7 +33,7 @@ def add_session(request):
 
         session = Session.objects.create(type=type, date=date, course=course)
         group_ids = course.groups.values_list('id', flat=True)
-        students = User.objects.filter(group_id__in=group_ids, role__role='Студент')
+        students = User.objects.filter(student_profile__group__id__in=group_ids,role__role='Студент')
 
         attendances = [
             Attendance(session=session, student=student, status='н', grade = None) 

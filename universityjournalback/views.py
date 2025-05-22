@@ -1,7 +1,9 @@
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
+from authentication.models import TeacherProfile
 from authentication.serializers import UserSerializer
 from .models import Attendance, Course, Session, User
 from .serializers import AttendanceSerializer, SessionSerializer
@@ -68,6 +70,25 @@ def get_teacher_list(request):
         return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+    
+
+@api_view(['PUT'])
+def update_teacher(request, user_id):
+    try:
+        print("🔍 Получен user_id:", user_id)
+        user = User.objects.get(id=user_id)
+        teacher_profile = user.teacher_profile
+    except (User.DoesNotExist, TeacherProfile.DoesNotExist):
+        return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    user.username = request.data.get('username', user.username)
+    teacher_profile.position = request.data.get('position', teacher_profile.position)
+    teacher_profile.bio = request.data.get('bio', teacher_profile.bio)
+
+    user.save()
+    teacher_profile.save()
+
+    return Response({'message': 'Teacher updated successfully'})
 
 @api_view(['POST'])
 def delete_user(request):

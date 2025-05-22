@@ -24,7 +24,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     teacher_profile = TeacherProfileSerializer(read_only=True)
     student_profile = StudentProfileSerializer(read_only=True)
-    role = serializers.CharField(source='role.role')
+    role = RoleSerializer(read_only=True)  # ⬅️ Здесь возвращаем весь объект
 
     class Meta:
         model = User

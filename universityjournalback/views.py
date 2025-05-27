@@ -45,6 +45,35 @@ def add_session(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+    
+@api_view(['PUT'])
+def update_attendance(request):
+    session_id = request.data.get('session_id')
+    student_id = request.data.get('student_id')  # 👈 добавь ID студента
+    status_value = request.data.get('status')
+    grade_value = request.data.get('grade')
+
+    if not session_id or not student_id:
+        return Response({'error': 'ID сессии и ID студента обязательны'}, status=400)
+
+    try:
+        attendance = Attendance.objects.get(session_id=session_id, student_id=student_id)
+    except Attendance.DoesNotExist:
+        return Response({'error': 'Запись посещаемости не найдена'}, status=404)
+
+    if status_value is not None:
+        attendance.status = status_value
+    if grade_value is not None:
+        try:
+            attendance.grade = int(grade_value)
+        except ValueError:
+            return Response({'error': 'Оценка должна быть числом'}, status=400)
+
+    attendance.save(update_fields=['status', 'grade'])
+    print(f"Обновление attendance: студент={attendance.student_id}, статус={attendance.status}, оценка={attendance.grade}")
+
+    return Response({'success': True, 'message': 'Посещаемость обновлена'})
+
 
 @api_view(['POST'])
 def delete_session(request):

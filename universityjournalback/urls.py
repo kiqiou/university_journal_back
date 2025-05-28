@@ -1,10 +1,11 @@
 from django.urls import include, path
-from .views import get_attendance, add_session, delete_session, get_teacher_list, delete_user, update_teacher, update_attendance
+from .views import get_attendance, add_session, delete_session, get_teacher_list, delete_user, update_teacher, update_attendance, update_session
 
 urlpatterns = [
     path('auth/', include('authentication.urls')),
     path('api/attendance/', get_attendance),
     path('api/update_attendance/', update_attendance),
+     path('api/update_session/<int:id>/', update_session),
     path('api/add_session/', add_session),
     path('api/delete_session/', delete_session),
     path('api/get_teacher_list/', get_teacher_list),

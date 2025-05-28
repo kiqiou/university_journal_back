@@ -46,6 +46,25 @@ def add_session(request):
     except Exception as e:
         return Response({'error': str(e)}, status=500)
     
+@api_view(['PATCH'])
+def update_session(request, id):
+    try:
+        session = Session.objects.get(pk=id)
+    except Session.DoesNotExist:
+        return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data 
+
+    if "date" in data:
+        session.date = data["date"]
+    if "type" in data:
+        session.session_type = data["type"] 
+    if "topic" in data:
+        session.topic = data["topic"]
+
+    session.save()
+    return Response({"success": True}, status=status.HTTP_200_OK)
+    
 @api_view(['PUT'])
 def update_attendance(request):
     session_id = request.data.get('session_id')

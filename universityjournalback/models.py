@@ -18,6 +18,7 @@ class Session(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sessions")
     date = models.DateField()
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    topic = models.CharField(max_length=255, null=True)
 
 class Attendance(models.Model):
     STATUS_CHOICES = [

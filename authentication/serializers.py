@@ -1,13 +1,15 @@
 from rest_framework import serializers
-from .models import User, Role
+from .models import User, Role, TeacherProfile, StudentProfile, Role, Group
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 'role'] 
 
-from rest_framework import serializers
-from .models import User, TeacherProfile, StudentProfile, Role, Group
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'group_name']
 
 class TeacherProfileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -3,10 +3,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from authentication.models import TeacherProfile
-from authentication.serializers import UserSerializer
-from .models import Attendance, Course, Session, User
-from .serializers import AttendanceSerializer, SessionSerializer
+from authentication.models import Group, TeacherProfile
+from authentication.serializers import GroupSerializer, UserSerializer
+from .models import Attendance, Course, CoursePlan, Session, User
+from .serializers import AttendanceSerializer, CoursePlanSerializer, CourseSerializer, SessionSerializer
 
 @api_view(['GET', 'POST'])
 def get_attendance(request):
@@ -68,7 +68,7 @@ def update_session(request, id):
 @api_view(['PUT'])
 def update_attendance(request):
     session_id = request.data.get('session_id')
-    student_id = request.data.get('student_id')  # 👈 добавь ID студента
+    student_id = request.data.get('student_id')
     status_value = request.data.get('status')
     grade_value = request.data.get('grade')
 
@@ -119,6 +119,11 @@ def get_teacher_list(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
+@api_view(['GET'])
+def get_groups_list(request):
+    groups = Group.objects.all()
+    serializer = GroupSerializer(groups, many=True)
+    return Response(serializer.data)
 
 @api_view(['PUT'])
 def update_teacher(request, user_id):
@@ -142,12 +147,71 @@ def update_teacher(request, user_id):
 def delete_user(request):
     user_id = request.data.get('user_id')
     if not user_id:
-        return Response({'error': 'ID сессии обязателен'}, status=400)
+        return Response({'error': 'ID пользователя обязателен'}, status=400)
     try:
         user = User.objects.get(id=user_id)
         user.delete()
+        return Response({'message': 'Пользователь успешно удален'}, status=200)
+    except User.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def get_courses_list(request):
+    try:
+        courses_list = Course.objects
+        serializer = CourseSerializer(courses_list, many=True)
+        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+    
+@api_view(['POST'])
+def add_or_update_course(request):
+    teachers_ids = request.data.get('teachers')
+    groups_ids = request.data.get('groups') 
+    course_id = request.data.get('course_id')
+    name = request.data.get('name')
+
+    if not name:
+        return Response({'error': 'Название курса обязательно'}, status=status.HTTP_400_BAD_REQUEST)
+    if not teachers_ids or not groups_ids:
+        return Response({'error': 'Нужно указать преподавателей и группы'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        if course_id:
+            course = Course.objects.get(id=course_id)
+            course.name = name
+        else:
+            course = Course(name=name)
+
+        course.save()
+        valid_teachers = User.objects.filter(id__in=teachers_ids)
+        valid_groups = Group.objects.filter(id__in=groups_ids)
+
+        course.teachers.set(valid_teachers)
+        course.groups.set(valid_groups)
+
+        course.save()
+
+        serializer = CourseSerializer(course)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except Course.DoesNotExist:
+        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def delete_course(request):
+    course_id = request.data.get('course_id')
+    if not course_id:
+        return Response({'error': 'ID дисциплины обязателен'}, status=400)
+    try:
+        course = Course.objects.get(id=course_id)
+        course.delete()
         return Response({'message': 'Преподаватель успешно удален'}, status=200)
-    except Session.DoesNotExist:
+    except Course.DoesNotExist:
         return Response({'error': 'Преподаватель не найден'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

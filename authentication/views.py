@@ -1,6 +1,9 @@
 from email.headerregistry import Group
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from universityjournalback.models import Course
+from universityjournalback.serializers import CourseSerializer
 from .models import StudentProfile, TeacherProfile, User, Role
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import check_password
@@ -70,7 +73,16 @@ def login_user(request):
             return Response({'error': 'Неверное имя пользователя или пароль'}, status=400)
         print(f"Сериализованные данные: {UserSerializer(user).data}")
 
-        return Response({'message': 'Успешный вход', 'user': UserSerializer(user).data}, status=200)
+        
+        user_data = UserSerializer(user).data
+
+        if user.role and user.role.role == 'Преподаватель':
+            teacher_courses = Course.objects.filter(teachers=user)
+            courses_data = CourseSerializer(teacher_courses, many=True).data
+            user_data['courses'] = courses_data
+
+        return Response({'message': 'Успешный вход','user': user_data}, status=200)
+    
     except Exception as e:
         print(f"Ошибка: {str(e)}") 
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)

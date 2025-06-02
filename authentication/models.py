@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 
+class Course(models.Model):
+    name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
+
 class Group(models.Model):
     group_name = models.CharField(max_length=100, null=False, blank=False, unique=True)
 
@@ -28,3 +31,4 @@ class TeacherProfile(models.Model):
 class StudentProfile(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='student_profile')
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)

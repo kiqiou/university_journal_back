@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import CoursePlan, Session, Attendance, Course
+from .models import CoursePlan, Session, Attendance, Discipline
 from authentication.serializers import GroupSerializer, UserSerializer
 
 class CourseSerializer(serializers.ModelSerializer):
     teachers = UserSerializer(many=True)
     groups = GroupSerializer(many=True)
     class Meta:
-        model = Course
+        model = Discipline
         fields = ['id', 'name', 'groups', 'teachers']
 
 class SessionSerializer(serializers.ModelSerializer):

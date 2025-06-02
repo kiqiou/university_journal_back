@@ -2,7 +2,7 @@ from email.headerregistry import Group
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from universityjournalback.models import Course
+from universityjournalback.models import Discipline
 from universityjournalback.serializers import CourseSerializer
 from .models import StudentProfile, TeacherProfile, User, Role
 from .serializers import UserSerializer
@@ -77,7 +77,7 @@ def login_user(request):
         user_data = UserSerializer(user).data
 
         if user.role and user.role.role == 'Преподаватель':
-            teacher_courses = Course.objects.filter(teachers=user)
+            teacher_courses = Discipline.objects.filter(teachers=user)
             courses_data = CourseSerializer(teacher_courses, many=True).data
             user_data['courses'] = courses_data
 

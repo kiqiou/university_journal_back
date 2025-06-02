@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from django.db import models
 from authentication.models import User, Group
 
-class Course(models.Model):
+class Discipline(models.Model):
     name = models.CharField(max_length=255)
     groups = models.ManyToManyField(Group, related_name='courses')
     teachers = models.ManyToManyField(User, limit_choices_to={'role': 'Преподаватель'})
@@ -16,13 +16,13 @@ class Session(models.Model):
         ('Аттестация', 'Аттестация'),
     ]
     
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sessions")
+    course = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="sessions")
     date = models.DateField()
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     topic = models.CharField(max_length=255, null=True)
 
 class CoursePlan(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="plan_items")
+    course = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="plan_items")
     type = models.CharField(max_length=50, choices=Session.TYPE_CHOICES)
     hours_allocated = models.PositiveIntegerField()
 

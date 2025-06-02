@@ -5,7 +5,7 @@ from rest_framework import status
 
 from authentication.models import Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
-from .models import Attendance, Course, CoursePlan, Session, User
+from .models import Attendance, Discipline, CoursePlan, Session, User
 from .serializers import AttendanceSerializer, CoursePlanSerializer, CourseSerializer, SessionSerializer
 
 @api_view(['GET', 'POST'])
@@ -27,7 +27,7 @@ def add_session(request):
         return Response({'error': 'Айди курса, тип и дата обязательны'}, status=400)
 
     try:
-        course = Course.objects.prefetch_related('groups').filter(id=course_id).first()
+        course = Discipline.objects.prefetch_related('groups').filter(id=course_id).first()
         if not course:
             return Response({'error': 'Курс не найден'}, status=404)
 
@@ -160,7 +160,7 @@ def delete_user(request):
 @api_view(['POST'])
 def get_courses_list(request):
     try:
-        courses_list = Course.objects
+        courses_list = Discipline.objects
         serializer = CourseSerializer(courses_list, many=True)
         return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
     except Exception as e:
@@ -180,10 +180,10 @@ def add_or_update_course(request):
 
     try:
         if course_id:
-            course = Course.objects.get(id=course_id)
+            course = Discipline.objects.get(id=course_id)
             course.name = name
         else:
-            course = Course(name=name)
+            course = Discipline(name=name)
 
         course.save()
         valid_teachers = User.objects.filter(id__in=teachers_ids)
@@ -197,7 +197,7 @@ def add_or_update_course(request):
         serializer = CourseSerializer(course)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    except Course.DoesNotExist:
+    except Discipline.DoesNotExist:
         return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -208,10 +208,10 @@ def delete_course(request):
     if not course_id:
         return Response({'error': 'ID дисциплины обязателен'}, status=400)
     try:
-        course = Course.objects.get(id=course_id)
+        course = Discipline.objects.get(id=course_id)
         course.delete()
         return Response({'message': 'Преподаватель успешно удален'}, status=200)
-    except Course.DoesNotExist:
+    except Discipline.DoesNotExist:
         return Response({'error': 'Преподаватель не найден'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

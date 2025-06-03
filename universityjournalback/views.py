@@ -139,8 +139,6 @@ def update_user(request, user_id):
     teacher_profile.position = request.data.get('position', teacher_profile.position)
     teacher_profile.bio = request.data.get('bio', teacher_profile.bio)
     student_profile.group = request.data.get('group_id', student_profile.group)
-    student_profile.course = request.data.get('course_id', student_profile.course)
-    student_profile.faculty = request.data.get('faculty_id', student_profile.faculty)
 
     user.save()
     teacher_profile.save()

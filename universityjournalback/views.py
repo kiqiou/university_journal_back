@@ -5,8 +5,8 @@ from rest_framework import status
 
 from authentication.models import Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
-from .models import Attendance, Discipline, CoursePlan, Session, User
-from .serializers import AttendanceSerializer, CoursePlanSerializer, CourseSerializer, SessionSerializer
+from .models import Attendance, Discipline, Session, User
+from .serializers import AttendanceSerializer, CourseSerializer, SessionSerializer
 
 @api_view(['GET', 'POST'])
 def get_attendance(request):
@@ -126,20 +126,25 @@ def get_groups_list(request):
     return Response(serializer.data)
 
 @api_view(['PUT'])
-def update_teacher(request, user_id):
+def update_user(request, user_id):
     try:
         print("🔍 Получен user_id:", user_id)
         user = User.objects.get(id=user_id)
         teacher_profile = user.teacher_profile
+        student_profile = user.student_profile
     except (User.DoesNotExist, TeacherProfile.DoesNotExist):
         return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
 
     user.username = request.data.get('username', user.username)
     teacher_profile.position = request.data.get('position', teacher_profile.position)
     teacher_profile.bio = request.data.get('bio', teacher_profile.bio)
+    student_profile.group = request.data.get('group_id', student_profile.group)
+    student_profile.course = request.data.get('course_id', student_profile.course)
+    student_profile.faculty = request.data.get('faculty_id', student_profile.faculty)
 
     user.save()
     teacher_profile.save()
+    student_profile.save()
 
     return Response({'message': 'Teacher updated successfully'})
 

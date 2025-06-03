@@ -2,7 +2,7 @@ from email.headerregistry import Group
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from universityjournalback.models import Discipline
+from universityjournalback.models import Attendance, Discipline, Session
 from universityjournalback.serializers import CourseSerializer
 from .models import StudentProfile, TeacherProfile, User, Role
 from .serializers import UserSerializer
@@ -49,8 +49,15 @@ def register_user(request):
             group = Group.objects.filter(id=group_id).first()
             if not group:
                 return Response({'error': 'Некорректный group_id'}, status=400)
-            StudentProfile.objects.create(user=user, group=group)
+            
+            sessions = Session.objects.filter(group_id=group_id)
 
+            attendances = [
+                Attendance(session=session, student=user, status='', grade=None)
+                for session in sessions
+                ]
+            Attendance.objects.bulk_create(attendances)
+            StudentProfile.objects.create(user=user, group=group)
         return Response(UserSerializer(user).data, status=201)
 
     except Exception as e:

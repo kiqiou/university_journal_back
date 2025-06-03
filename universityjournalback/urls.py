@@ -1,6 +1,6 @@
 from django.urls import include, path
 from .views import delete_course, get_attendance, add_session, delete_session, get_groups_list
-from .views import get_teacher_list, delete_user, update_teacher, update_attendance, update_session, get_courses_list,add_or_update_course
+from .views import get_teacher_list, delete_user, update_user, update_attendance, update_session, get_courses_list,add_or_update_course
 
 urlpatterns = [
     path('auth/', include('authentication.urls')),
@@ -10,7 +10,7 @@ urlpatterns = [
     path('api/add_session/', add_session),
     path('api/delete_session/', delete_session),
     path('api/get_teacher_list/', get_teacher_list),
-    path('api/update_teacher/<int:user_id>/', update_teacher, name='update_teacher'),
+    path('api/update_user/<int:user_id>/', update_user,),
     path('api/delete_user/', delete_user),
     path('api/get_courses_list/', get_courses_list),
     path('api/add_or_update_course/', add_or_update_course),

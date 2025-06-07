@@ -206,15 +206,21 @@ def update_course(request):
     name = request.data.get('name')
     teachers_ids = request.data.get('teachers', [])
     groups_ids = request.data.get('groups', [])
+    append_teachers = request.data.get('append_teachers', False)
 
     try:
         course = Discipline.objects.get(id=course_id)
 
         if name:
             course.name = name
+
         if teachers_ids:
             valid_teachers = User.objects.filter(id__in=teachers_ids)
-            course.teachers.set(valid_teachers)
+            if append_teachers:
+                course.teachers.add(*valid_teachers)
+            else:
+                course.teachers.set(valid_teachers)
+
         if groups_ids:
             valid_groups = Group.objects.filter(id__in=groups_ids)
             course.groups.set(valid_groups)
@@ -227,6 +233,7 @@ def update_course(request):
         return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 def delete_course(request):

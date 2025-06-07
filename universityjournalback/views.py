@@ -170,10 +170,9 @@ def get_courses_list(request):
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
 @api_view(['POST'])
-def add_or_update_course(request):
+def add_course(request):
     teachers_ids = request.data.get('teachers')
     groups_ids = request.data.get('groups') 
-    course_id = request.data.get('course_id')
     name = request.data.get('name')
 
     if not name:
@@ -182,11 +181,7 @@ def add_or_update_course(request):
         return Response({'error': 'Нужно указать преподавателей и группы'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        if course_id:
-            course = Discipline.objects.get(id=course_id)
-            course.name = name
-        else:
-            course = Discipline(name=name)
+        course = Discipline(name=name)
 
         course.save()
         valid_teachers = User.objects.filter(id__in=teachers_ids)
@@ -199,6 +194,34 @@ def add_or_update_course(request):
 
         serializer = CourseSerializer(course)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except Discipline.DoesNotExist:
+        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['PUT'])
+def update_course(request):
+    course_id = request.data.get('course_id')
+    name = request.data.get('name')
+    teachers_ids = request.data.get('teachers', [])
+    groups_ids = request.data.get('groups', [])
+
+    try:
+        course = Discipline.objects.get(id=course_id)
+
+        if name:
+            course.name = name
+        if teachers_ids:
+            valid_teachers = User.objects.filter(id__in=teachers_ids)
+            course.teachers.set(valid_teachers)
+        if groups_ids:
+            valid_groups = Group.objects.filter(id__in=groups_ids)
+            course.groups.set(valid_groups)
+
+        course.save()
+        serializer = CourseSerializer(course)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Discipline.DoesNotExist:
         return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)

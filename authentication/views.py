@@ -1,5 +1,5 @@
 from email.headerregistry import Group
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 
 from universityjournalback.models import Attendance, Discipline, Session
@@ -11,8 +11,10 @@ from django.contrib.auth import logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 
 @api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
 def register_user(request):
     try:
         username = request.data.get('username')
@@ -21,6 +23,7 @@ def register_user(request):
         group_id = request.data.get('group_id')
         position = request.data.get('position')
         bio = request.data.get('bio')
+        photo = request.data.get('photo')
 
         if not username or not password or not role_id:
             return Response({'error': 'Имя, пароль и ID роли обязательны'}, status=400)
@@ -41,7 +44,7 @@ def register_user(request):
         if role.role.lower() == 'преподаватель':
             if not position or not bio:
                 return Response({'error': 'Для преподавателя необходимы "position" и "bio"'}, status=400)
-            TeacherProfile.objects.create(user=user, position=position, bio=bio)
+            TeacherProfile.objects.create(user=user, position=position, bio=bio, photo=photo)
 
         elif role.role.lower() == 'студент':
             if not group_id:

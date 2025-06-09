@@ -32,6 +32,7 @@ class TeacherProfile(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='teacher_profile')
     position = models.CharField(max_length=255)
     bio = models.TextField()
+    photo = models.ImageField(upload_to='photos/teachers/', null=True, blank=True) 
 
 class StudentProfile(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='student_profile')

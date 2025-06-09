@@ -14,7 +14,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class TeacherProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherProfile
-        fields = ['position', 'bio']
+        fields = ['position', 'bio', 'photo']
 
 class StudentProfileSerializer(serializers.ModelSerializer):
     group = serializers.IntegerField(source='group.id', read_only=True)

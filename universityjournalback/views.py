@@ -138,7 +138,11 @@ def update_user(request, user_id):
     user.username = request.data.get('username', user.username)
     teacher_profile.position = request.data.get('position', teacher_profile.position)
     teacher_profile.bio = request.data.get('bio', teacher_profile.bio)
-    student_profile.group = request.data.get('group_id', student_profile.group)
+    student_profile.group_id = request.data.get('group_id', student_profile.group_id)
+
+    # обработка фото
+    if 'photo' in request.FILES:
+        teacher_profile.photo = request.FILES['photo']
 
     user.save()
     teacher_profile.save()
@@ -216,10 +220,13 @@ def update_course(request):
 
         if teachers_ids:
             valid_teachers = User.objects.filter(id__in=teachers_ids)
+    
             if append_teachers:
                 course.teachers.add(*valid_teachers)
             else:
                 course.teachers.set(valid_teachers)
+
+
 
         if groups_ids:
             valid_groups = Group.objects.filter(id__in=groups_ids)

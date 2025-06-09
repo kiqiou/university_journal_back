@@ -1,4 +1,7 @@
 from django.urls import include, path
+
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import add_course, delete_course, get_attendance, add_session, delete_session, get_groups_list, update_course
 from .views import get_teacher_list, delete_user, update_user, update_attendance, update_session, get_courses_list
 
@@ -18,3 +21,6 @@ urlpatterns = [
     path('api/delete_course/', delete_course),
     path('api/get_groups_list', get_groups_list)
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

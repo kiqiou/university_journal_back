@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from authentication.models import Group, TeacherProfile
+from authentication.models import Course, Faculty, Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
 from .models import Attendance, Discipline, Session, User
 from .serializers import AttendanceSerializer, CourseSerializer, SessionSerializer
@@ -119,12 +119,15 @@ def get_teacher_list(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
-@api_view(['GET'])
-def get_groups_list(request):
-    groups = Group.objects.all()
-    serializer = GroupSerializer(groups, many=True)
-    return Response(serializer.data)
-
+@api_view(['POST'])
+def get_student_list(request):
+    try:
+        student_list = User.objects.filter(role__role="Студент")
+        serializer = UserSerializer(student_list, many=True)
+        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+    
 @api_view(['PUT'])
 def update_user(request, user_id):
     try:
@@ -140,7 +143,6 @@ def update_user(request, user_id):
     teacher_profile.bio = request.data.get('bio', teacher_profile.bio)
     student_profile.group_id = request.data.get('group_id', student_profile.group_id)
 
-    # обработка фото
     if 'photo' in request.FILES:
         teacher_profile.photo = request.FILES['photo']
 
@@ -161,6 +163,96 @@ def delete_user(request):
         return Response({'message': 'Пользователь успешно удален'}, status=200)
     except User.DoesNotExist:
         return Response({'error': 'Пользователь не найден'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+    
+@api_view(['GET'])
+def get_groups_list(request):
+    try:
+        groups = Group.objects.all()
+        serializer = GroupSerializer(groups, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
+@api_view(['POST'])
+def add_group(request):
+    name = request.data.get('name')
+    students_ids = request.data.get('students')
+    faculty_id = request.data.get('faculty') 
+    course_id = request.data.get('course')
+
+    if not name:
+        return Response({'error': 'Название группы обязательно'}, status=status.HTTP_400_BAD_REQUEST)
+    if not faculty_id or not course_id:
+        return Response({'error': 'Нужно указать факультет и группу'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        group = Group(name=name)
+
+        group.save()
+        valid_students = User.objects.filter(id__in=students_ids)
+        group.user.set(valid_students)
+        group.faculty.set(Faculty.objects.filter(id__in = faculty_id))
+        group.course.set(Course.objects.filter(id__in = course_id))
+
+        group.save()
+
+        serializer = GroupSerializer(group)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except User.DoesNotExist:
+        return Response({'error': 'Студент не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['PUT'])
+def update_group(request):
+    group_id = request.data.get('group_id')
+    name = request.data.get('name')
+    students_ids = request.data.get('students')
+    faculty_id = request.data.get('faculty') 
+    course_id = request.data.get('course')
+    
+    try:
+        group = Group.objects.get(id=group_id)
+
+        if name:
+            group.name = name
+
+        if students_ids:
+            valid_students = User.objects.filter(id__in=students_ids)
+            group.students.set(valid_students)
+
+        if faculty_id:
+            valid_faculty = Group.objects.filter(id__in=faculty_id)
+            group.faculty.set(valid_faculty)
+        
+        if course_id:
+            valid_course = Group.objects.filter(id__in=course_id)
+            group.faculty.set(valid_course)
+
+        group.save()
+        serializer = GroupSerializer(group)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Discipline.DoesNotExist:
+        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def delete_group(request):
+    group_id = request.data.get('group_id')
+    if not group_id:
+        return Response({'error': 'ID группы обязателен'}, status=400)
+    try:
+        group = Group.objects.get(id=group_id)
+        group.delete()
+        return Response({'message': 'Группа успешно удалена'}, status=200)
+    except Group.DoesNotExist:
+        return Response({'error': 'Группане найдена'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 

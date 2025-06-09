@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from universityjournalback.models import Attendance, Discipline, Session
 from universityjournalback.serializers import CourseSerializer
-from .models import StudentProfile, TeacherProfile, User, Role
+from .models import TeacherProfile, User, Role
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout
@@ -60,7 +60,7 @@ def register_user(request):
                 for session in sessions
                 ]
             Attendance.objects.bulk_create(attendances)
-            StudentProfile.objects.create(user=user, group=group)
+            User.objects.create(user=user, group=group)
         return Response(UserSerializer(user).data, status=201)
 
     except Exception as e:

@@ -1,17 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 
-class Faculty(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
-
-class Course(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
-
-class Group(models.Model):
-    group_name = models.CharField(max_length=100, null=False, blank=False, unique=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, null=True)
-
 class Role(models.Model):
     role = models.CharField(max_length=100)
 
@@ -28,13 +17,21 @@ class User(AbstractBaseUser):
             self.set_password(self.password)
         super().save(*args, **kwargs)
     
+class Faculty(models.Model):
+    name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
+
+class Course(models.Model):
+    name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
+
+class Group(models.Model):
+    group_name = models.CharField(max_length=100, null=False, blank=False, unique=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, null=True)
+    students = models.ForeignKey(User, on_delete=models.CASCADE, null=True, )
+    
 class TeacherProfile(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='teacher_profile')
     position = models.CharField(max_length=255)
     bio = models.TextField()
     photo = models.ImageField(upload_to='photos/teachers/', null=True, blank=True) 
-
-class StudentProfile(models.Model):
-    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='student_profile')
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
     

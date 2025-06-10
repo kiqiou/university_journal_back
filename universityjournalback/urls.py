@@ -21,7 +21,7 @@ urlpatterns = [
     path('api/update_course/', update_course),
     path('api/delete_course/', delete_course),
     path('api/get_groups_list/', get_groups_list),
-    path('api/add_group', add_group),
+    path('api/add_group/', add_group),
     path('api/delete_group/', delete_group),
     path('api/update_group/', update_group),
 ]

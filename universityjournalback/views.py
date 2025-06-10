@@ -194,32 +194,36 @@ def get_groups_list(request):
 
 @api_view(['POST'])
 def add_group(request):
+    print("📌 Полученные данные:", request.data)
+    
     name = request.data.get('name')
-    students_ids = request.data.get('students')
+    students_ids = request.data.get('students', [])
     faculty_id = request.data.get('faculty') 
     course_id = request.data.get('course')
 
     if not name:
         return Response({'error': 'Название группы обязательно'}, status=status.HTTP_400_BAD_REQUEST)
     if not faculty_id or not course_id:
-        return Response({'error': 'Нужно указать факультет и группу'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Нужно указать факультет и курс'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        group = Group(name=name)
-
+        group = Group(name=name, faculty=Faculty.objects.get(id=faculty_id), course=Course.objects.get(id=course_id))
         group.save()
+
         valid_students = User.objects.filter(id__in=students_ids)
-        group.user.set(valid_students)
-        group.faculty.set(Faculty.objects.filter(id__in = faculty_id))
-        group.course.set(Course.objects.filter(id__in = course_id))
-
-        group.save()
+        for student in valid_students:
+            group.student = student  
+            group.save()  
 
         serializer = GroupSerializer(group)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     except User.DoesNotExist:
         return Response({'error': 'Студент не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Faculty.DoesNotExist:
+        return Response({'error': 'Факультет не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Course.DoesNotExist:
+        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

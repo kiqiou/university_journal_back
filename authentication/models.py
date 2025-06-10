@@ -24,10 +24,10 @@ class Course(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False, unique=True,)
 
 class Group(models.Model):
-    group_name = models.CharField(max_length=100, null=False, blank=False, unique=True)
+    name = models.CharField(max_length=100, null=False, blank=False, unique=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, null=True)
-    students = models.ForeignKey(User, on_delete=models.CASCADE, null=True, )
+    student = models.ForeignKey(User, on_delete=models.CASCADE, null=True, )
     
 class TeacherProfile(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='teacher_profile')

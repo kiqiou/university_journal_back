@@ -133,11 +133,9 @@ def update_user(request, user_id):
     try:
         print("🔍 Получен user_id:", user_id)
         user = User.objects.get(id=user_id)
-        teacher_profile = user.teacher_profile
-    except (User.DoesNotExist, TeacherProfile.DoesNotExist):
-        return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
+    except (User.DoesNotExist):
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Проверяем, есть ли переданные параметры
     username = request.data.get('username')
     group_id = request.data.get('group_id')
     position = request.data.get('position')
@@ -147,25 +145,26 @@ def update_user(request, user_id):
         user.username = username
     
     if position:
-        teacher_profile.position = position
+        user.teacher_profile.position = position
+        user.teacher_profile.save()
     
     if bio:
-        teacher_profile.bio = bio
+        user.teacher_profile.bio = bio
+        user.teacher_profile.save()
 
-    # Если передан group_id, добавляем пользователя в группу
     if group_id:
         try:
             group = Group.objects.get(id=group_id)
-            group.students.add(user)
+            group.student = user  
+            group.save()
         except Group.DoesNotExist:
             return Response({'error': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Обновление фото, если оно загружено
     if 'photo' in request.FILES:
-        teacher_profile.photo = request.FILES['photo']
-
+        user.teacher_profile.photo = request.FILES['photo']
+        user.teacher_profile.save()
+    
     user.save()
-    teacher_profile.save()
 
     return Response({'message': 'User updated successfully'})
 

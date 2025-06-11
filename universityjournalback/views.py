@@ -6,16 +6,25 @@ from rest_framework import status
 from authentication.models import Course, Faculty, Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
 from .models import Attendance, Discipline, Session, User
-from .serializers import AttendanceSerializer, CourseSerializer, SessionSerializer
+from .serializers import CourseSerializer, SessionSerializer, SessionWithAttendanceSerializer
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def get_attendance(request):
     try:
-        attendance_records = Attendance.objects.all() 
-        serializer = AttendanceSerializer(attendance_records, many=True)
-        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
+        course_id = request.query_params.get('course_id')  # из query params
+        group_id = request.query_params.get('group_id')
+
+        qs = Session.objects.all()
+        if course_id:
+            qs = qs.filter(course_id=course_id)
+
+        if group_id:
+            qs = qs.filter(attendance__student__group_id=group_id)
+
+        serializer = SessionWithAttendanceSerializer(qs, many=True)
+        return Response(serializer.data, status=200)
     except Exception as e:
-        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['POST'])
 def add_session(request):

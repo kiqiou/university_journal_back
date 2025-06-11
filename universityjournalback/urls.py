@@ -7,7 +7,7 @@ from .views import get_teacher_list, delete_user, update_user, update_attendance
 
 urlpatterns = [
     path('auth/', include('authentication.urls')),
-    path('api/attendance/', get_attendance),
+    path('api/get_attendance/', get_attendance),
     path('api/update_attendance/', update_attendance),
     path('api/update_session/<int:id>/', update_session),
     path('api/add_session/', add_session),

@@ -15,6 +15,24 @@ class SessionSerializer(serializers.ModelSerializer):
         model = Session
         fields = ['id', 'course', 'date', 'type', 'topic']
 
+class AttendanceForSessionSerializer(serializers.ModelSerializer):
+    student = UserSerializer()
+    class Meta:
+        model = Attendance
+        fields = ['student', 'status', 'grade']
+
+class SessionWithAttendanceSerializer(serializers.ModelSerializer):
+    attendances = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Session
+        fields = ['id', 'course', 'date', 'type', 'topic', 'attendances']
+
+    def get_attendances(self, obj):
+        attendance_qs = Attendance.objects.filter(session=obj)
+        return AttendanceForSessionSerializer(attendance_qs, many=True).data
+
+
 class CoursePlanSerializer(serializers.ModelSerializer):
     expected_sessions_count = serializers.IntegerField(read_only=True)
 

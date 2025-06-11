@@ -211,8 +211,8 @@ def add_group(request):
 
         valid_students = User.objects.filter(id__in=students_ids)
         for student in valid_students:
-            group.student = student  
-            group.save()  
+            student.group = group
+            student.save()
 
         serializer = GroupSerializer(group)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -240,24 +240,27 @@ def update_group(request):
         if name:
             group.name = name
 
-        if students_ids:
+        if students_ids is not None:
+            User.objects.filter(group=group).update(group=None)
             valid_students = User.objects.filter(id__in=students_ids)
-            group.students.set(valid_students)
+            for student in valid_students:
+                student.group = group
+                student.save()
 
         if faculty_id:
-            valid_faculty = Group.objects.filter(id__in=faculty_id)
-            group.faculty.set(valid_faculty)
+            valid_faculty = Faculty.objects.filter(id=faculty_id)
+            group.faculty = valid_faculty.first()
         
         if course_id:
-            valid_course = Group.objects.filter(id__in=course_id)
-            group.faculty.set(valid_course)
+            valid_course = Course.objects.filter(id=course_id)
+            group.course = valid_course.first()
 
         group.save()
         serializer = GroupSerializer(group)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    except Discipline.DoesNotExist:
-        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Group.DoesNotExist:
+        return Response({'error': 'Группа не найдена'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

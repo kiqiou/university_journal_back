@@ -22,16 +22,15 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class GroupSerializer(serializers.ModelSerializer):
-    student = serializers.SerializerMethodField() 
+    students = serializers.SerializerMethodField() 
     faculty = FacultySerializer(read_only=True)
     course = CourseSerializer(read_only=True)
     class Meta:
         model = Group
-        fields = ['id', 'name', 'faculty', 'course', 'student']
-    
-    def get_student(self, obj):
-        student = User.objects.filter(group=obj)
-        return UserSerializer(student, many=True).data
+        fields = ['id', 'name', 'course', 'faculty', 'students']
+
+    def get_students(self, obj):
+        return [{'id': s.id, 'username': s.username} for s in obj.students.all()]
 
 class UserSerializer(serializers.ModelSerializer):
     teacher_profile = TeacherProfileSerializer(read_only=True)

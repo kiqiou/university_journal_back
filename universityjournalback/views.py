@@ -32,11 +32,12 @@ def add_session(request):
             return Response({'error': 'Курс не найден'}, status=404)
 
         session = Session.objects.create(type=type, date=date, course=course)
+
         group_ids = course.groups.values_list('id', flat=True)
-        students = User.objects.filter(student_profile__group__id__in=group_ids,role__role='Студент')
+        students = User.objects.filter(group__id__in=group_ids, role__role='Студент')
 
         attendances = [
-            Attendance(session=session, student=student, status='н', grade = None) 
+            Attendance(session=session, student=student, status='н', grade=None)
             for student in students
         ]
         Attendance.objects.bulk_create(attendances)
@@ -44,6 +45,8 @@ def add_session(request):
         return Response(SessionSerializer(session).data, status=201)
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return Response({'error': str(e)}, status=500)
     
 @api_view(['PATCH'])
@@ -128,6 +131,20 @@ def get_student_list(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
+@api_view(['POST'])
+def get_students_by_group(request):
+    group_id = request.data.get('group_id')
+
+    if not group_id:
+        return Response({'error': 'ID группы обязателен'}, status=400)
+
+    try:
+        students = User.objects.filter(role__role="Студент", group__id=group_id)
+        serializer = UserSerializer(students, many=True)
+        return Response(serializer.data, status=200)
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
 @api_view(['PUT'])
 def update_user(request, user_id):
     try:

@@ -1,10 +1,9 @@
-from email.headerregistry import Group
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 
 from universityjournalback.models import Attendance, Discipline, Session
 from universityjournalback.serializers import CourseSerializer
-from .models import TeacherProfile, User, Role
+from .models import TeacherProfile, User, Role, Group
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout
@@ -49,18 +48,22 @@ def register_user(request):
         elif role.role.lower() == 'студент':
             if not group_id:
                 return Response({'error': 'Для студента необходимо указать group_id'}, status=400)
-            group = Group.objects.filter(id=group_id).first()
-            if not group:
-                return Response({'error': 'Некорректный group_id'}, status=400)
-            
-            sessions = Session.objects.filter(group_id=group_id)
 
-            attendances = [
-                Attendance(session=session, student=user, status='', grade=None)
-                for session in sessions
-                ]
-            Attendance.objects.bulk_create(attendances)
-            User.objects.create(user=user, group=group)
+        group = Group.objects.filter(id=group_id).first()
+        if not group:
+            return Response({'error': 'Некорректный group_id'}, status=400)
+
+        user.group = group
+        user.save()
+
+        disciplines = Discipline.objects.filter(groups__id=group_id)
+        sessions = Session.objects.filter(course__in=disciplines)
+        attendances = [
+            Attendance(session=session, student=user, status='', grade=None)
+            for session in sessions
+        ]
+        Attendance.objects.bulk_create(attendances)
+
         return Response(UserSerializer(user).data, status=201)
 
     except Exception as e:

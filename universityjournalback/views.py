@@ -11,7 +11,7 @@ from .serializers import CourseSerializer, SessionSerializer, SessionWithAttenda
 @api_view(['GET'])
 def get_attendance(request):
     try:
-        course_id = request.query_params.get('course_id')  # из query params
+        course_id = request.query_params.get('course_id')
         group_id = request.query_params.get('group_id')
 
         qs = Session.objects.all()
@@ -19,9 +19,9 @@ def get_attendance(request):
             qs = qs.filter(course_id=course_id)
 
         if group_id:
-            qs = qs.filter(attendance__student__group_id=group_id)
+            qs = qs.filter(attendance__student__group_id=group_id).distinct()
 
-        serializer = SessionWithAttendanceSerializer(qs, many=True)
+        serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})
         return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

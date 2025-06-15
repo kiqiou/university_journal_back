@@ -29,9 +29,13 @@ class SessionWithAttendanceSerializer(serializers.ModelSerializer):
         fields = ['id', 'course', 'date', 'type', 'topic', 'attendances']
 
     def get_attendances(self, obj):
+        group_id = self.context.get('group_id')
         attendance_qs = Attendance.objects.filter(session=obj)
-        return AttendanceForSessionSerializer(attendance_qs, many=True).data
 
+        if group_id:
+            attendance_qs = attendance_qs.filter(student__group_id=group_id)
+
+        return AttendanceForSessionSerializer(attendance_qs, many=True).data
 
 class CoursePlanSerializer(serializers.ModelSerializer):
     expected_sessions_count = serializers.IntegerField(read_only=True)

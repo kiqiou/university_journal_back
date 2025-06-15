@@ -49,11 +49,11 @@ def register_user(request):
             if not group_id:
                 return Response({'error': 'Для студента необходимо указать group_id'}, status=400)
 
-        group = Group.objects.filter(id=group_id).first()
-        if not group:
-            return Response({'error': 'Некорректный group_id'}, status=400)
-
-        user.group = group
+            group = Group.objects.filter(id=group_id).first()
+            if not group:
+                return Response({'error': 'Некорректный group_id'}, status=400)
+            user.group = group
+            
         user.save()
 
         disciplines = Discipline.objects.filter(groups__id=group_id)

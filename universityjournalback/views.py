@@ -60,6 +60,7 @@ def add_session(request):
     
 @api_view(['PATCH'])
 def update_session(request, id):
+    print(request.data)
     try:
         session = Session.objects.get(pk=id)
     except Session.DoesNotExist:
@@ -70,7 +71,7 @@ def update_session(request, id):
     if "date" in data:
         session.date = data["date"]
     if "type" in data:
-        session.session_type = data["type"] 
+        session.type = data["type"] 
     if "topic" in data:
         session.topic = data["topic"]
 
@@ -105,7 +106,6 @@ def update_attendance(request):
 
     return Response({'success': True, 'message': 'Посещаемость обновлена'})
 
-
 @api_view(['POST'])
 def delete_session(request):
     session_id = request.data.get('session_id')
@@ -121,6 +121,7 @@ def delete_session(request):
         return Response({'error': 'Сессия не найдена'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
     
 @api_view(['POST'])
 def get_teacher_list(request):
@@ -162,12 +163,16 @@ def update_user(request, user_id):
     except (User.DoesNotExist):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    username = request.data.get('username')
+    username = request.data.get('username', '').strip()
     group_id = request.data.get('group_id')
     position = request.data.get('position')
     bio = request.data.get('bio')
 
-    if username:
+    print(f'🚨 Сравнение имён: "{username}" vs "{user.username}"')
+
+    if username and username != user.username:
+        if User.objects.filter(username__iexact=username).exclude(id=user.id).exists():
+            return Response({'error': 'Пользователь с таким именем уже существует'}, status=status.HTTP_400_BAD_REQUEST)
         user.username = username
     
     if position:
@@ -181,8 +186,8 @@ def update_user(request, user_id):
     if group_id:
         try:
             group = Group.objects.get(id=group_id)
-            group.student = user  
-            group.save()
+            user.group = group 
+            user.save()
         except Group.DoesNotExist:
             return Response({'error': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
 

@@ -22,7 +22,6 @@ def register_user(request):
         group_id = request.data.get('group_id')
         position = request.data.get('position')
         bio = request.data.get('bio')
-        photo = request.data.get('photo')
 
         if not username or not password or not role_id:
             return Response({'error': 'Имя, пароль и ID роли обязательны'}, status=400)
@@ -43,7 +42,15 @@ def register_user(request):
         if role.role.lower() == 'преподаватель':
             if not position or not bio:
                 return Response({'error': 'Для преподавателя необходимы "position" и "bio"'}, status=400)
-            TeacherProfile.objects.create(user=user, position=position, bio=bio, photo=photo)
+            profile = TeacherProfile.objects.create(
+                user=user,
+                position=position,
+                bio=bio
+            )
+            if 'photo' in request.FILES:
+                profile.photo = request.FILES['photo']
+                profile.save()
+            
 
         elif role.role.lower() == 'студент':
             if not group_id:

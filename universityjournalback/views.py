@@ -5,8 +5,8 @@ from rest_framework import status
 
 from authentication.models import Course, Faculty, Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
-from .models import Attendance, Discipline, Session, User
-from .serializers import CourseSerializer, SessionSerializer, SessionWithAttendanceSerializer
+from .models import Attendance, Discipline, DisciplinePlan, Session, User
+from .serializers import DisciplineSerializer, SessionSerializer, SessionWithAttendanceSerializer
 
 @api_view(['GET'])
 def get_attendance(request):
@@ -128,7 +128,16 @@ def get_teacher_list(request):
     try:
         teachers_list = User.objects.filter(role__role="Преподаватель")
         serializer = UserSerializer(teachers_list, many=True)
-        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
+        data = serializer.data
+
+        for item in data:
+            user_id = item['id']
+            user = User.objects.get(id=user_id)
+            teacher_courses = Discipline.objects.filter(teachers=user)
+            courses_data = DisciplineSerializer(teacher_courses, many=True).data
+            item['courses'] = courses_data
+
+        return Response(data, status=201, content_type="application/json; charset=utf-8")
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
@@ -218,7 +227,7 @@ def get_groups_list(request):
     try:
         groups = Group.objects.all()
         serializer = GroupSerializer(groups, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=200, content_type="application/json; charset=utf-8")
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
@@ -314,16 +323,18 @@ def delete_group(request):
 def get_courses_list(request):
     try:
         courses_list = Discipline.objects
-        serializer = CourseSerializer(courses_list, many=True)
+        serializer = DisciplineSerializer(courses_list, many=True)
         return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
 @api_view(['POST'])
-def add_course(request):
+def add_discipline(request):
+    print("REQUEST DATA:", request.data)
     teachers_ids = request.data.get('teachers')
     groups_ids = request.data.get('groups') 
     name = request.data.get('name')
+    plan_items = request.data.get('plan_items', [])
 
     if not name:
         return Response({'error': 'Название курса обязательно'}, status=status.HTTP_400_BAD_REQUEST)
@@ -331,62 +342,73 @@ def add_course(request):
         return Response({'error': 'Нужно указать преподавателей и группы'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        course = Discipline(name=name)
+        course = Discipline.objects.create(name=name)
 
-        course.save()
         valid_teachers = User.objects.filter(id__in=teachers_ids)
         valid_groups = Group.objects.filter(id__in=groups_ids)
 
         course.teachers.set(valid_teachers)
         course.groups.set(valid_groups)
 
-        course.save()
+        for item in plan_items:
+            print("Plan item:", item)
+            DisciplinePlan.objects.create(
+                discipline=course,
+                type=item.get('type'),
+                hours_allocated=int(item.get('hours_allocated') or 0),
+                hours_per_session=int(item.get('hours_per_session', 2))
+            )
 
-        serializer = CourseSerializer(course)
+        serializer = DisciplineSerializer(course)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    except Discipline.DoesNotExist:
-        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @api_view(['PUT'])
-def update_course(request):
+def update_discipline(request):
     course_id = request.data.get('course_id')
     name = request.data.get('name')
     teachers_ids = request.data.get('teachers', [])
     groups_ids = request.data.get('groups', [])
+    plan_items = request.data.get('plan_items', None)
     append_teachers = request.data.get('append_teachers', False)
 
     try:
-        course = Discipline.objects.get(id=course_id)
+        discipline = Discipline.objects.get(id=course_id)
 
         if name:
-            course.name = name
+            discipline.name = name
 
         if teachers_ids:
             valid_teachers = User.objects.filter(id__in=teachers_ids)
-    
             if append_teachers:
-                course.teachers.add(*valid_teachers)
+                discipline.teachers.add(*valid_teachers)
             else:
-                course.teachers.set(valid_teachers)
-
-
+                discipline.teachers.set(valid_teachers)
 
         if groups_ids:
             valid_groups = Group.objects.filter(id__in=groups_ids)
-            course.groups.set(valid_groups)
+            discipline.groups.set(valid_groups)
 
-        course.save()
-        serializer = CourseSerializer(course)
+        if plan_items is not None:
+            discipline.plan_items.all().delete()
+            for item in plan_items:
+                DisciplinePlan.objects.create(
+                    discipline=discipline,
+                    type=item['type'],
+                    hours_allocated=item['hours_allocated'],
+                    hours_per_session=item.get('hours_per_session', 2)
+                )
+
+        discipline.save()
+        serializer = DisciplineSerializer(discipline)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Discipline.DoesNotExist:
         return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 def delete_course(request):

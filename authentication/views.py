@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 
 from universityjournalback.models import Attendance, Discipline, Session
-from universityjournalback.serializers import CourseSerializer
+from universityjournalback.serializers import DisciplineSerializer
 from .models import TeacherProfile, User, Role, Group
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import check_password
@@ -60,17 +60,15 @@ def register_user(request):
             if not group:
                 return Response({'error': 'Некорректный group_id'}, status=400)
             user.group = group
+            disciplines = Discipline.objects.filter(groups__id=group_id)
+            sessions = Session.objects.filter(course__in=disciplines)
+            attendances = [
+                Attendance(session=session, student=user, status='', grade=None)
+                for session in sessions
+            ]
+            Attendance.objects.bulk_create(attendances)
             
         user.save()
-
-        disciplines = Discipline.objects.filter(groups__id=group_id)
-        sessions = Session.objects.filter(course__in=disciplines)
-        attendances = [
-            Attendance(session=session, student=user, status='', grade=None)
-            for session in sessions
-        ]
-        Attendance.objects.bulk_create(attendances)
-
         return Response(UserSerializer(user).data, status=201)
 
     except Exception as e:
@@ -98,7 +96,7 @@ def login_user(request):
 
         if user.role and user.role.role == 'Преподаватель':
             teacher_courses = Discipline.objects.filter(teachers=user)
-            courses_data = CourseSerializer(teacher_courses, many=True).data
+            courses_data = DisciplineSerializer(teacher_courses, many=True).data
             user_data['courses'] = courses_data
 
         return Response({'message': 'Успешный вход','user': user_data}, status=200)

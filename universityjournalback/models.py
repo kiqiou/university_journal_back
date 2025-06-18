@@ -21,25 +21,15 @@ class Session(models.Model):
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     topic = models.CharField(max_length=255, null=True)
 
-class CoursePlan(models.Model):
-    course = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="plan_items")
+class DisciplinePlan(models.Model):
+    discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="plan_items")
+    hours_per_session = models.PositiveIntegerField(default=2) 
     type = models.CharField(max_length=50, choices=Session.TYPE_CHOICES)
     hours_allocated = models.PositiveIntegerField()
 
     @property
     def expected_sessions_count(self):
         return self.hours_allocated // self.hours_per_session
-    
-    def generate_sessions(self, start_date: date):
-        num_sessions = self.hours_allocated // self.hours_per_session
-
-        for i in range(num_sessions):
-            Session.objects.create(
-                course=self.course,
-                date=start_date + timedelta(weeks=i),
-                type=self.type,
-                topic=f"{self.type} №{i+1}"
-            )
 
 class Attendance(models.Model):
     STATUS_CHOICES = [

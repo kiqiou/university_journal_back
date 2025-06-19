@@ -198,10 +198,26 @@ def update_user(request, user_id):
     if group_id:
         try:
             group = Group.objects.get(id=group_id)
-            user.group = group 
-            user.save()
+
+            old_group_id = user.group.id if user.group else None
+            if old_group_id != group.id:
+                user.group = group
+                user.save()
+
+            Attendance.objects.filter(student=user).delete()
+
+            disciplines = Discipline.objects.filter(groups__id=group.id)
+            sessions = Session.objects.filter(course__in=disciplines)
+
+            attendances = [
+                Attendance(session=session, student=user, status='', grade=None)
+                for session in sessions
+            ]
+            Attendance.objects.bulk_create(attendances)
+
         except Group.DoesNotExist:
             return Response({'error': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
     if 'photo' in request.FILES:
         user.teacher_profile.photo = request.FILES['photo']

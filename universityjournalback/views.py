@@ -17,9 +17,8 @@ def get_attendance(request):
         qs = Session.objects.all()
         if course_id:
             qs = qs.filter(course_id=course_id)
-
         if group_id:
-            qs = qs.filter(attendance__student__group_id=group_id).distinct()
+            qs = qs.filter(group_id=group_id) 
 
         serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})
         return Response(serializer.data, status=200)
@@ -31,22 +30,28 @@ def add_session(request):
     type = request.data.get('type')
     date = request.data.get('date')
     course_id = request.data.get('course_id')
+    group_id = request.data.get('group_id')
 
-    if not course_id or not type or not date:
-        return Response({'error': 'Айди курса, тип и дата обязательны'}, status=400)
+    if not course_id or not type or not date or not group_id:
+        return Response({'error': 'Айди курса, тип, дата и группа обязательны'}, status=400)
 
     try:
         course = Discipline.objects.prefetch_related('groups').filter(id=course_id).first()
         if not course:
             return Response({'error': 'Курс не найден'}, status=404)
 
-        session = Session.objects.create(type=type, date=date, course=course)
+        session = Session.objects.create(
+            type=type,
+            date=date,
+            course=course,
+            group_id=group_id,
+        )
 
         group_ids = course.groups.values_list('id', flat=True)
         students = User.objects.filter(group__id__in=group_ids, role__role='Студент')
 
         attendances = [
-            Attendance(session=session, student=student, status='н', grade=None)
+            Attendance(session=session, student=student, status='', grade=None)
             for student in students
         ]
         Attendance.objects.bulk_create(attendances)
@@ -54,8 +59,6 @@ def add_session(request):
         return Response(SessionSerializer(session).data, status=201)
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return Response({'error': str(e)}, status=500)
     
 @api_view(['PATCH'])

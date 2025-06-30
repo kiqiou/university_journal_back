@@ -1,4 +1,15 @@
 services:
+
+  frontend:
+    image: ghcr.io/cirruslabs/flutter:latest
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+    working_dir: /app
+    command: flutter run -d web-server --web-port=3000 --web-hostname=0.0.0.0
+
   db:
     image: postgres:15
     container_name: db
@@ -10,6 +21,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d 
     restart: always
     env_file:
       - .env
@@ -35,7 +47,7 @@ services:
       DATABASE_PORT: 5432
     env_file:
       - .env
-    
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin

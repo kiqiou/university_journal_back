@@ -27,6 +27,7 @@ class User(AbstractBaseUser):
     password = models.TextField()
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    isHeadman = models.BooleanField(null=True)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []

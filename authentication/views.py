@@ -21,6 +21,7 @@ def register_user(request):
         role_id = request.data.get('role_id')
         group_id = request.data.get('group_id')
         position = request.data.get('position')
+        isHeadman = request.data.get('isHeadman')
         bio = request.data.get('bio')
 
         if not username or not password or not role_id:
@@ -53,13 +54,21 @@ def register_user(request):
             
 
         elif role.role.lower() == 'студент':
-            if not group_id:
-                return Response({'error': 'Для студента необходимо указать group_id'}, status=400)
-
-            group = Group.objects.filter(id=group_id).first()
-            if not group:
+            try:
+                group_id = int(group_id)
+            except (TypeError, ValueError):
                 return Response({'error': 'Некорректный group_id'}, status=400)
-            user.group = group
+            if group_id:
+                group = Group.objects.filter(id=group_id).first()
+                if not group:
+                    return Response({'error': 'Некорректный group_id'}, status=400)
+                user.group = group
+            try: 
+                isHeadman = bool(isHeadman)
+            except (TypeError, ValueError):
+                return Response({'error': 'Некорректный isHeadman'}, status = 400)
+            if isHeadman:
+                user.isHeadman = isHeadman
             disciplines = Discipline.objects.filter(groups__id=group_id)
             sessions = Session.objects.filter(course__in=disciplines)
             attendances = [

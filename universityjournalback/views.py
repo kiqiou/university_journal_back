@@ -233,6 +233,26 @@ def update_user(request, user_id):
 
     return Response({'message': 'User updated successfully'})
 
+@api_view(['PUT'])
+def update_teacher_disciplines(request):
+    teacher_id = request.data.get('teacher_id')
+    discipline_ids = request.data.get('discipline_ids', [])
+
+    try:
+        teacher = User.objects.get(id=teacher_id)
+
+        for discipline in Discipline.objects.filter(teachers=teacher):
+            discipline.teachers.remove(teacher)
+
+        for discipline in Discipline.objects.filter(id__in=discipline_ids):
+            discipline.teachers.add(teacher)
+
+        return Response({"message": "Привязки обновлены"}, status=200)
+    except User.DoesNotExist:
+        return Response({"error": "Преподаватель не найден"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
 @api_view(['POST'])
 def delete_user(request):
     user_id = request.data.get('user_id')
@@ -405,14 +425,14 @@ def update_discipline(request):
         if name:
             discipline.name = name
 
-        if teachers_ids:
+        if 'teachers' in request.data:
             valid_teachers = User.objects.filter(id__in=teachers_ids)
             if append_teachers:
                 discipline.teachers.add(*valid_teachers)
             else:
                 discipline.teachers.set(valid_teachers)
 
-        if groups_ids:
+        if 'groups' in request.data:
             valid_groups = Group.objects.filter(id__in=groups_ids)
             discipline.groups.set(valid_groups)
 

@@ -179,8 +179,7 @@ def update_user(request, user_id):
     group_id = request.data.get('group_id')
     position = request.data.get('position')
     bio = request.data.get('bio')
-
-    print(f'🚨 Сравнение имён: "{username}" vs "{user.username}"')
+    isHeadman = request.data.get('isHeadman')
 
     if username and username != user.username:
         if User.objects.filter(username__iexact=username).exclude(id=user.id).exists():
@@ -222,6 +221,13 @@ def update_user(request, user_id):
     if 'photo' in request.FILES:
         user.teacher_profile.photo = request.FILES['photo']
         user.teacher_profile.save()
+    
+        
+    if 'isHeadman' in request.data:
+        try: 
+            user.isHeadman = bool(int(request.data['isHeadman']))
+        except (TypeError, ValueError):
+            return Response({'error': 'Некорректный isHeadman'}, status = 400)
     
     user.save()
 

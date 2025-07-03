@@ -2,12 +2,6 @@ from rest_framework import serializers
 from .models import DisciplinePlan, Session, Attendance, Discipline
 from authentication.serializers import GroupSerializer, UserSerializer
 
-class AttendanceForSessionSerializer(serializers.ModelSerializer):
-    student = UserSerializer()
-    class Meta:
-        model = Attendance
-        fields = ['student', 'status', 'grade']
-
 class SessionWithAttendanceSerializer(serializers.ModelSerializer):
     attendances = serializers.SerializerMethodField()
 
@@ -22,7 +16,7 @@ class SessionWithAttendanceSerializer(serializers.ModelSerializer):
         if group_id:
             attendance_qs = attendance_qs.filter(student__group_id=group_id)
 
-        return AttendanceForSessionSerializer(attendance_qs, many=True).data
+        return AttendanceSerializer(attendance_qs, many=True).data
     
 class DisciplinePlanSerializer(serializers.ModelSerializer):
 
@@ -67,7 +61,8 @@ class SessionSerializer(serializers.ModelSerializer):
 
 class AttendanceSerializer(serializers.ModelSerializer):
     student = UserSerializer()
+    modified_by = UserSerializer()
     session = SessionSerializer()
     class Meta:
         model = Attendance
-        fields = ['session', 'student', 'status', 'grade']
+        fields = ['session', 'student', 'status', 'grade', 'updated_at', 'modified_by']

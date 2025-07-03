@@ -44,13 +44,14 @@ class DisciplinePlan(models.Model):
 
 class Attendance(models.Model):
     STATUS_CHOICES = [
-        ('н', 'Отсутствовал'),
-        ('п', 'Присутствовал'),
+        ('ув', 'Отсутствовал по уважительной причине'),
+        ('неув', 'Отсутствовал по неуважительной причине'),
+        (' ', 'Присутствовал')
     ]
 
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'Студент'})
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=4, choices=STATUS_CHOICES)
     grade = models.IntegerField(null=True, blank=True) 
 
     created_at = models.DateTimeField(auto_now_add=True)

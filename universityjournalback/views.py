@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,6 +24,7 @@ def get_attendance(request):
             qs = qs.filter(group_id=group_id) 
 
         serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})
+        print(serializer.data)  
         return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
@@ -113,13 +115,21 @@ def update_attendance(request):
             return Response({'error': 'Оценка должна быть числом'}, status=400)
 
     attendance.modified_by = request.user
-    fields_to_update.append('modified_by')
+    attendance.updated_at = timezone.now()
+    fields_to_update.extend(['modified_by', 'updated_at'])
 
     attendance.save(update_fields=fields_to_update)
+    print(f"UTC time: {attendance.updated_at} ({attendance.updated_at.tzinfo})")
+    print(f"Local time: {timezone.localtime(attendance.updated_at)}")
 
     print(f"Обновление attendance: студент={attendance.student_id}, статус={attendance.status}, оценка={attendance.grade}, изменено={request.user.username}")
 
-    return Response({'success': True, 'message': 'Посещаемость обновлена'})
+    return Response({
+    'success': True,
+    'message': 'Посещаемость обновлена',
+    'modified_by': request.user.username,
+    'updated_at': timezone.localtime(attendance.updated_at).isoformat(),
+    })
 
 @api_view(['POST'])
 def delete_session(request):

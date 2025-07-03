@@ -5,6 +5,8 @@ from universityjournalback.models import Attendance, Discipline, Session
 from universityjournalback.serializers import DisciplineSerializer
 from .models import TeacherProfile, User, Role, Group
 from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout
 from rest_framework.views import APIView
@@ -83,24 +85,11 @@ def register_user(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
-
-@api_view(['POST'])
-def login_user(request):
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_info(request):
     try:
-        username = request.data.get('username', '')
-        password = request.data.get('password', '')
-
-        print(f"Полученные данные: {username}, {password}")
-
-        user = User.objects.filter(username=username).first()
-        print(f"user: {user}")
-        print(f"Пароль валиден: {check_password(password, user.password) if user else 'user not found'}")
-
-        if not user or not check_password(password, user.password):
-            return Response({'error': 'Неверное имя пользователя или пароль'}, status=400)
-        print(f"Сериализованные данные: {UserSerializer(user).data}")
-
-        
+        user = request.user
         user_data = UserSerializer(user).data
 
         if user.role and user.role.role == 'Преподаватель':
@@ -108,11 +97,9 @@ def login_user(request):
             courses_data = DisciplineSerializer(teacher_courses, many=True).data
             user_data['courses'] = courses_data
 
-        return Response({'message': 'Успешный вход','user': user_data}, status=200)
-    
+        return Response(user_data, status = 200)
     except Exception as e:
-        print(f"Ошибка: {str(e)}") 
-        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+        return Response({'error': f'Ошибка: {str(e)}'}, status=401)
 
 class LogoutView(APIView):
     def post(self, request):

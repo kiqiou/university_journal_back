@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 from authentication.models import Course, Faculty, Group, TeacherProfile
 from authentication.serializers import GroupSerializer, UserSerializer
@@ -82,6 +84,7 @@ def update_session(request, id):
     return Response({"success": True}, status=status.HTTP_200_OK)
     
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_attendance(request):
     session_id = request.data.get('session_id')
     student_id = request.data.get('student_id')
@@ -96,16 +99,25 @@ def update_attendance(request):
     except Attendance.DoesNotExist:
         return Response({'error': 'Запись посещаемости не найдена'}, status=404)
 
+    fields_to_update = []
+
     if status_value is not None:
         attendance.status = status_value
+        fields_to_update.append('status')
+
     if grade_value is not None:
         try:
             attendance.grade = int(grade_value)
+            fields_to_update.append('grade')
         except ValueError:
             return Response({'error': 'Оценка должна быть числом'}, status=400)
 
-    attendance.save(update_fields=['status', 'grade'])
-    print(f"Обновление attendance: студент={attendance.student_id}, статус={attendance.status}, оценка={attendance.grade}")
+    attendance.modified_by = request.user
+    fields_to_update.append('modified_by')
+
+    attendance.save(update_fields=fields_to_update)
+
+    print(f"Обновление attendance: студент={attendance.student_id}, статус={attendance.status}, оценка={attendance.grade}, изменено={request.user.username}")
 
     return Response({'success': True, 'message': 'Посещаемость обновлена'})
 

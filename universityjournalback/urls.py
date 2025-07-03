@@ -2,10 +2,16 @@ from django.urls import include, path
 
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from .views import add_discipline, add_group, delete_course, delete_group, get_attendance, add_session, delete_session, get_groups_list, get_student_list, get_students_by_group, update_discipline, update_group
 from .views import get_teacher_list, delete_user, update_user, update_attendance, update_session, get_courses_list, update_teacher_disciplines
 
 urlpatterns = [
+    path('auth/api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/', include('authentication.urls')),
     path('api/get_attendance/', get_attendance),
     path('api/update_attendance/', update_attendance),

@@ -22,7 +22,7 @@ class DisciplinePlanSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DisciplinePlan
-        fields = ['id','discipline','type','hours_allocated','hours_per_session',]
+        fields = ['id','discipline','type','hours_allocated','hours_per_session', 'is_group_split']
 
 class DisciplineSerializer(serializers.ModelSerializer):
     teachers = UserSerializer(many=True)

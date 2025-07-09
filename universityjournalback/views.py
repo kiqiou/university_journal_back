@@ -121,7 +121,6 @@ def update_attendance(request):
     attendance.save(update_fields=fields_to_update)
     print(f"UTC time: {attendance.updated_at} ({attendance.updated_at.tzinfo})")
     print(f"Local time: {timezone.localtime(attendance.updated_at)}")
-
     print(f"Обновление attendance: студент={attendance.student_id}, статус={attendance.status}, оценка={attendance.grade}, изменено={request.user.username}")
 
     return Response({
@@ -387,10 +386,10 @@ def delete_group(request):
         return Response({'error': str(e)}, status=500)
 
 @api_view(['POST'])
-def get_courses_list(request):
+def get_discipline_list(request):
     try:
-        courses_list = Discipline.objects
-        serializer = DisciplineSerializer(courses_list, many=True)
+        disciplines = Discipline.objects
+        serializer = DisciplineSerializer(disciplines, many=True)
         return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
@@ -409,24 +408,25 @@ def add_discipline(request):
         return Response({'error': 'Нужно указать преподавателей и группы'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        course = Discipline.objects.create(name=name)
+        discipline = Discipline.objects.create(name=name)
 
         valid_teachers = User.objects.filter(id__in=teachers_ids)
         valid_groups = Group.objects.filter(id__in=groups_ids)
 
-        course.teachers.set(valid_teachers)
-        course.groups.set(valid_groups)
+        discipline.teachers.set(valid_teachers)
+        discipline.groups.set(valid_groups)
 
         for item in plan_items:
             print("Plan item:", item)
             DisciplinePlan.objects.create(
-                discipline=course,
+                discipline=discipline,
                 type=item.get('type'),
+                is_group_split=bool(item.get('is_group_split') or 0),
                 hours_allocated=int(item.get('hours_allocated') or 0),
                 hours_per_session=int(item.get('hours_per_session', 2))
             )
 
-        serializer = DisciplineSerializer(course)
+        serializer = DisciplineSerializer(discipline)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     except Exception as e:
@@ -464,6 +464,7 @@ def update_discipline(request):
                 DisciplinePlan.objects.create(
                     discipline=discipline,
                     type=item['type'],
+                    is_group_split=bool(item.get('is_group_split') or 0),
                     hours_allocated=item['hours_allocated'],
                     hours_per_session=item.get('hours_per_session', 2)
                 )
@@ -478,13 +479,13 @@ def update_discipline(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
-def delete_course(request):
-    course_id = request.data.get('course_id')
-    if not course_id:
+def delete_discipline(request):
+    discipline_id = request.data.get('course_id')
+    if not discipline_id:
         return Response({'error': 'ID дисциплины обязателен'}, status=400)
     try:
-        course = Discipline.objects.get(id=course_id)
-        course.delete()
+        discipline = Discipline.objects.get(id=discipline_id)
+        discipline.delete()
         return Response({'message': 'Преподаватель успешно удален'}, status=200)
     except Discipline.DoesNotExist:
         return Response({'error': 'Преподаватель не найден'}, status=404)

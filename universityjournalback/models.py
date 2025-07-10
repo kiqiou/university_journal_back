@@ -7,6 +7,7 @@ class Discipline(models.Model):
     name = models.CharField(max_length=255)
     groups = models.ManyToManyField(Group, related_name='courses')
     teachers = models.ManyToManyField(User, limit_choices_to={'role': 'Преподаватель'})
+    is_group_split = models.BooleanField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -33,7 +34,6 @@ class DisciplinePlan(models.Model):
     discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE, related_name="plan_items")
     hours_per_session = models.PositiveIntegerField(default=2) 
     type = models.CharField(max_length=50, choices=Session.TYPE_CHOICES)
-    is_group_split = models.BooleanField(null=True)
     hours_allocated = models.PositiveIntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True)

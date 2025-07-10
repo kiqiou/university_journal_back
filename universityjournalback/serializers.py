@@ -22,7 +22,7 @@ class DisciplinePlanSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DisciplinePlan
-        fields = ['id','discipline','type','hours_allocated','hours_per_session', 'is_group_split']
+        fields = ['id','discipline','type','hours_allocated','hours_per_session']
 
 class DisciplineSerializer(serializers.ModelSerializer):
     teachers = UserSerializer(many=True)
@@ -31,7 +31,7 @@ class DisciplineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Discipline
-        fields = ['id', 'name', 'groups', 'teachers', 'plan_items']
+        fields = ['id', 'name', 'groups', 'teachers', 'plan_items', 'is_group_split']
 
     def create(self, validated_data):
         plan_data = validated_data.pop('plan_items')

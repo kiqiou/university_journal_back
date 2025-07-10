@@ -400,6 +400,7 @@ def add_discipline(request):
     teachers_ids = request.data.get('teachers')
     groups_ids = request.data.get('groups') 
     name = request.data.get('name')
+    is_group_split = request.data.get('is_group_split')
     plan_items = request.data.get('plan_items', [])
 
     if not name:
@@ -415,13 +416,15 @@ def add_discipline(request):
 
         discipline.teachers.set(valid_teachers)
         discipline.groups.set(valid_groups)
+        discipline.is_group_split = is_group_split
+        discipline.save() 
 
         for item in plan_items:
             print("Plan item:", item)
             DisciplinePlan.objects.create(
                 discipline=discipline,
                 type=item.get('type'),
-                is_group_split=bool(item.get('is_group_split') or 0),
+        
                 hours_allocated=int(item.get('hours_allocated') or 0),
                 hours_per_session=int(item.get('hours_per_session', 2))
             )
@@ -436,6 +439,7 @@ def add_discipline(request):
 def update_discipline(request):
     course_id = request.data.get('course_id')
     name = request.data.get('name')
+    is_group_split = request.data.get('is_group_split')
     teachers_ids = request.data.get('teachers', [])
     groups_ids = request.data.get('groups', [])
     plan_items = request.data.get('plan_items', None)
@@ -446,6 +450,9 @@ def update_discipline(request):
 
         if name:
             discipline.name = name
+
+        if 'is_group_split' in request.data:
+            discipline.is_group_split = is_group_split
 
         if 'teachers' in request.data:
             valid_teachers = User.objects.filter(id__in=teachers_ids)
@@ -464,7 +471,6 @@ def update_discipline(request):
                 DisciplinePlan.objects.create(
                     discipline=discipline,
                     type=item['type'],
-                    is_group_split=bool(item.get('is_group_split') or 0),
                     hours_allocated=item['hours_allocated'],
                     hours_per_session=item.get('hours_per_session', 2)
                 )

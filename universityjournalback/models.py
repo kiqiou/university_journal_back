@@ -26,6 +26,7 @@ class Session(models.Model):
     date = models.DateField()
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     topic = models.CharField(max_length=255, null=True)
+    subGroup = models.IntegerField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -23,8 +23,7 @@ def get_attendance(request):
         if group_id:
             qs = qs.filter(group_id=group_id) 
 
-        serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})
-        print(serializer.data)  
+        serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})  
         return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
@@ -35,6 +34,7 @@ def add_session(request):
     date = request.data.get('date')
     course_id = request.data.get('course_id')
     group_id = request.data.get('group_id')
+    subGroup = request.data.get('subGroup')
 
     if not course_id or not type or not date or not group_id:
         return Response({'error': 'Айди курса, тип, дата и группа обязательны'}, status=400)
@@ -49,10 +49,19 @@ def add_session(request):
             date=date,
             course=course,
             group_id=group_id,
+            subGroup=subGroup,
         )
 
         group_ids = course.groups.values_list('id', flat=True)
-        students = User.objects.filter(group__id__in=group_ids, role__role='Студент')
+        students = list(User.objects.filter(group__id__in=group_ids,role__role='Студент'))
+
+        students.sort(key=lambda s: s.username.lower())
+        half = len(students) // 2
+
+        if subGroup == 1:
+            students = students[:half]
+        elif subGroup == 2:
+            students = students[half:]
 
         attendances = [
             Attendance(session=session, student=student, status='', grade=None)
@@ -67,7 +76,6 @@ def add_session(request):
     
 @api_view(['PATCH'])
 def update_session(request, id):
-    print(request.data)
     try:
         session = Session.objects.get(pk=id)
     except Session.DoesNotExist:

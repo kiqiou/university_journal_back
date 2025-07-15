@@ -57,7 +57,7 @@ class SessionSerializer(serializers.ModelSerializer):
     course = DisciplineSerializer(required=False, allow_null=True)
     class Meta:
         model = Session
-        fields = ['id', 'course', 'date', 'type', 'topic']
+        fields = ['id', 'course', 'date', 'type', 'topic', 'subGroup']
 
 class AttendanceSerializer(serializers.ModelSerializer):
     student = UserSerializer()

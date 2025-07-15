@@ -57,9 +57,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     isHeadman = models.BooleanField(null=True)
+    subGroup = models.IntegerField(null=True, blank=True)
 
-    is_active = models.BooleanField(default=True)  # обязательно
-    is_staff = models.BooleanField(default=False)  # обязательно
+    is_active = models.BooleanField(default=True) 
+    is_staff = models.BooleanField(default=False) 
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

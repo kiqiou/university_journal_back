@@ -40,28 +40,20 @@ def add_session(request):
         return Response({'error': 'Айди курса, тип, дата и группа обязательны'}, status=400)
 
     try:
-        course = Discipline.objects.prefetch_related('groups').filter(id=course_id).first()
-        if not course:
+        discipline = Discipline.objects.prefetch_related('groups').filter(id=course_id).first()
+        if not discipline:
             return Response({'error': 'Курс не найден'}, status=404)
 
         session = Session.objects.create(
             type=type,
             date=date,
-            course=course,
+            course=discipline,
             group_id=group_id,
             subGroup=subGroup,
         )
 
-        group_ids = course.groups.values_list('id', flat=True)
-        students = list(User.objects.filter(group__id__in=group_ids,role__role='Студент'))
-
-        students.sort(key=lambda s: s.username.lower())
-        half = len(students) // 2
-
-        if subGroup == 1:
-            students = students[:half]
-        elif subGroup == 2:
-            students = students[half:]
+        group_ids = discipline.groups.values_list('id', flat=True)
+        students = list(User.objects.filter(group__id__in=group_ids,role__role='Студент',subGroup=subGroup))
 
         attendances = [
             Attendance(session=session, student=student, status='', grade=None)
@@ -324,6 +316,18 @@ def add_group(request):
         group.save()
 
         valid_students = User.objects.filter(id__in=students_ids)
+        students = sorted(valid_students, key=lambda s: s.username.lower())
+
+        half = len(students) // 2
+
+        for i, student in enumerate(students):
+            if i < half:
+                student.subGroup = 1
+            else:
+                student.subGroup = 2
+            student.save()
+
+
         for student in valid_students:
             student.group = group
             student.save()

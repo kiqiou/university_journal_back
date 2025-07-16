@@ -7,7 +7,7 @@ class SessionWithAttendanceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = ['id', 'course', 'date', 'type', 'topic', 'attendances']
+        fields = ['id', 'course', 'date', 'type', 'topic', 'attendances', 'subGroup']
 
     def get_attendances(self, obj):
         group_id = self.context.get('group_id')

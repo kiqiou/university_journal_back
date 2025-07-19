@@ -30,7 +30,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'course', 'faculty', 'students']
 
     def get_students(self, obj):
-        return [{'id': s.id, 'username': s.username} for s in obj.students.all()]
+        return [{'id': s.id, 'username': s.username, 'subGroup': s.subGroup} for s in obj.students.all()]
 
 class UserSerializer(serializers.ModelSerializer):
     teacher_profile = TeacherProfileSerializer(read_only=True)

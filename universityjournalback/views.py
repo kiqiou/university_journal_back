@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.http import HttpResponse
+from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -53,7 +54,7 @@ def add_session(request):
         )
 
         group_ids = discipline.groups.values_list('id', flat=True)
-        students = list(User.objects.filter(group__id__in=group_ids,role__role='Студент',subGroup=subGroup))
+        students = User.objects.filter(group__in=discipline.groups.all(),role__role='Студент')
 
         attendances = [
             Attendance(session=session, student=student, status='', grade=None)
@@ -73,17 +74,33 @@ def update_session(request, id):
     except Session.DoesNotExist:
         return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    data = request.data 
+    data = request.data
 
     if "date" in data:
         session.date = data["date"]
     if "type" in data:
-        session.type = data["type"] 
+        session.type = data["type"]
     if "topic" in data:
         session.topic = data["topic"]
 
+    sub_group_value = session.subGroup  # начнем с текущего
+    if "subGroup" in data:
+        raw_value = data["subGroup"]
+        if raw_value in [None, '', 'null']:
+            sub_group_value = None
+        else:
+            try:
+                sub_group_value = int(raw_value)
+            except (TypeError, ValueError):
+                return Response({"error": "Invalid subGroup value"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if session.subGroup != sub_group_value:
+            session.subGroup = sub_group_value
+
     session.save()
+
     return Response({"success": True}, status=status.HTTP_200_OK)
+
     
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

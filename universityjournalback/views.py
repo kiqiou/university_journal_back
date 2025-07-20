@@ -83,8 +83,10 @@ def update_session(request, id):
     if "topic" in data:
         session.topic = data["topic"]
 
-    sub_group_value = session.subGroup  # начнем с текущего
     if "subGroup" in data:
+        sub_group_value = session.subGroup 
+        print(sub_group_value)
+        print(session.subGroup)
         raw_value = data["subGroup"]
         if raw_value in [None, '', 'null']:
             sub_group_value = None

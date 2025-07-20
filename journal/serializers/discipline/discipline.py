@@ -4,7 +4,6 @@ from journal.models.discipline import Discipline, DisciplinePlan
 from rest_framework import serializers
     
 class DisciplinePlanSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DisciplinePlan
         fields = ['id','discipline','type','hours_allocated','hours_per_session']

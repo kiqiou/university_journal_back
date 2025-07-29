@@ -1,4 +1,5 @@
 from authentication.models import Group, User
+from attestation.models import Attestation
 from journal.models.discipline import Discipline, DisciplinePlan
 from journal.serializers.discipline.discipline import DisciplineSerializer
 from rest_framework.decorators import api_view
@@ -25,6 +26,7 @@ def add_discipline(request):
     name = request.data.get('name')
     is_group_split = request.data.get('is_group_split')
     plan_items = request.data.get('plan_items', [])
+    attestation_type = request.data.get('attestation_type')
 
     if not name:
         return Response({'error': 'Название курса обязательно'}, status=status.HTTP_400_BAD_REQUEST)
@@ -42,12 +44,27 @@ def add_discipline(request):
         discipline.is_group_split = is_group_split
         discipline.save() 
 
+        try:
+            for group_id in groups_ids:
+                group = Group.objects.get(id=group_id)
+                students = User.objects.filter(group=group)
+                for student in students:
+                    attestation = Attestation.objects.create(
+                        discipline=discipline,
+                        group=group,
+                        student=student,
+                        attestation_type=attestation_type)
+                    print(attestation)
+                    attestation.save()
+        except Exception as e:
+            print("❌ Ошибка:")
+            traceback.print_exc()
+
         for item in plan_items:
             print("Plan item:", item)
             DisciplinePlan.objects.create(
                 discipline=discipline,
                 type=item.get('type'),
-        
                 hours_allocated=int(item.get('hours_allocated') or 0),
                 hours_per_session=int(item.get('hours_per_session', 2))
             )

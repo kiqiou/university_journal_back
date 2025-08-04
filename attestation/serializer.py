@@ -7,7 +7,7 @@ from journal.serializers.discipline.discipline import DisciplineSerializer
 class USRSerializer(serializers.ModelSerializer):
     class Meta:
         model = USR
-        fields = ['grade']
+        fields = ['id', 'grade', 'attestation']
 
 class AttestationSerializer(serializers.ModelSerializer):
     student = UserSerializer()
@@ -16,5 +16,5 @@ class AttestationSerializer(serializers.ModelSerializer):
     usr_items = USRSerializer(many=True) 
     class Meta:
         model = Attestation
-        fields = ['student', 'discipline', 'group', 'average_score', 'usr_items', 'result', 'attestation_type',]
+        fields = ['id', 'student', 'discipline', 'group', 'average_score', 'usr_items', 'result', 'attestation_type',]
 

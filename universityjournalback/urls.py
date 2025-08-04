@@ -9,6 +9,7 @@ urlpatterns = [
     path('discipline/', include('journal.urls.discipline.discipline_urls')),
     path('group/', include('authentication.urls.group.group_urls')),
     path('user/', include('authentication.urls.user.user_urls')),
+    path('attest/', include('attestation.urls'))
 ]
 
 if settings.DEBUG:

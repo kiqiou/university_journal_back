@@ -26,4 +26,3 @@ class Attestation(models.Model):
 class USR(models.Model):
     attestation = models.ForeignKey(Attestation, related_name='usr_items', on_delete=models.CASCADE)
     grade = models.PositiveIntegerField(null=True, blank=True)
-

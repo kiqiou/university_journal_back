@@ -22,6 +22,32 @@ def get_attestation(request):
         serializer = AttestationSerializer(attestations, many=True)
         return Response(serializer.data, status=200)
     except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)   
+
+@api_view(['POST'])
+def update_attestation(request):
+    attestation_id = request.data.get('attestation_id')
+    average_score = request.data.get('average_score')
+    result = request.data.get('result')
+
+    if not attestation_id:
+        return Response({'error': 'attestation_id/usr_id обязателен'}, status=400)
+    
+    try:
+        attestation=Attestation.objects.get(id=attestation_id)
+
+        if average_score is not None:
+            attestation.average_score = average_score
+            attestation.save()
+        
+        if result is not None:
+            attestation.result=result
+            attestation.save()
+
+        serializer = AttestationSerializer(attestation)
+
+        return Response(serializer.data, status = 200)
+    except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
 @api_view(['POST'])
@@ -55,11 +81,11 @@ def add_usr(request):
 
 @api_view(['POST'])
 def update_usr(request):
-    usr_id = request.data.get('attestation_id')
+    usr_id = request.data.get('usr_id')
     grade = request.data.get('grade')
 
     if not usr_id:
-        return Response({'error': 'attestation_id/usr_id обязателен'}, status=400)
+        return Response({'error': 'usr_id обязателен'}, status=400)
     
     try:
         usr = USR.objects.get(id=usr_id)

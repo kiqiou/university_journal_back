@@ -53,6 +53,7 @@ def add_discipline(request):
                         discipline=discipline,
                         group=group,
                         student=student,
+                        result='',
                         attestation_type=attestation_type)
                     print(attestation)
                     attestation.save()

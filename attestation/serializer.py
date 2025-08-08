@@ -16,5 +16,5 @@ class AttestationSerializer(serializers.ModelSerializer):
     usr_items = USRSerializer(many=True) 
     class Meta:
         model = Attestation
-        fields = ['id', 'student', 'discipline', 'group', 'average_score', 'usr_items', 'result', 'attestation_type',]
+        fields = ['id', 'student', 'discipline', 'group', 'average_score', 'usr_items', 'result',]
 

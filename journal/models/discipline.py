@@ -5,10 +5,16 @@ from django.db import models
 
 
 class Discipline(models.Model):
+    ATTESTATION_TYPE_CHOICES = [
+        ('зачет', 'Зачет'),
+        ('экзамен', 'Экзамен'),
+    ]
+        
     name = models.CharField(max_length=255)
     groups = models.ManyToManyField(Group, related_name='courses')
     teachers = models.ManyToManyField(User, limit_choices_to={'role': 'Преподаватель'})
     is_group_split = models.BooleanField(null=True)
+    attestation_type = models.CharField(max_length=10, choices=ATTESTATION_TYPE_CHOICES,)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

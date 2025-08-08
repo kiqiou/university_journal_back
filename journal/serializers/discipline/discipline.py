@@ -15,7 +15,7 @@ class DisciplineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Discipline
-        fields = ['id', 'name', 'groups', 'teachers', 'plan_items', 'is_group_split']
+        fields = ['id', 'name', 'groups', 'teachers', 'plan_items', 'is_group_split', 'attestation_type']
 
     def create(self, validated_data):
         plan_data = validated_data.pop('plan_items')

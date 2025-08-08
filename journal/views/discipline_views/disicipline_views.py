@@ -42,6 +42,7 @@ def add_discipline(request):
         discipline.teachers.set(valid_teachers)
         discipline.groups.set(valid_groups)
         discipline.is_group_split = is_group_split
+        discipline.attestation_type=attestation_type
         discipline.save() 
 
         try:
@@ -54,7 +55,7 @@ def add_discipline(request):
                         group=group,
                         student=student,
                         result='',
-                        attestation_type=attestation_type)
+                        )
                     print(attestation)
                     attestation.save()
         except Exception as e:
@@ -85,6 +86,7 @@ def update_discipline(request):
     groups_ids = request.data.get('groups', [])
     plan_items = request.data.get('plan_items', None)
     append_teachers = request.data.get('append_teachers', False)
+    attestation_type = request.data.get('attestation_type')
 
     try:
         discipline = Discipline.objects.get(id=course_id)
@@ -103,8 +105,33 @@ def update_discipline(request):
                 discipline.teachers.set(valid_teachers)
 
         if 'groups' in request.data:
+            old_groups = set(discipline.groups.all().values_list('id', flat=True))
+            new_groups = set(groups_ids)
+
+            added_groups = new_groups - old_groups
+            for group_id in added_groups:
+                group = Group.objects.get(id=group_id)
+                students = User.objects.filter(group=group)
+                for student in students:
+                    exists = Attestation.objects.filter(
+                        student=student,
+                        group=group,
+                        discipline=discipline
+                    ).exists()
+                    if not exists:
+                        Attestation.objects.create(
+                            discipline=discipline,
+                            group=group,
+                            student=student,
+                            result=''
+                        )
             valid_groups = Group.objects.filter(id__in=groups_ids)
             discipline.groups.set(valid_groups)
+
+        
+        if 'attestation_type' in request.data:
+            discipline.attestation_type=attestation_type
+            discipline.save()
 
         if plan_items is not None:
             discipline.plan_items.all().delete()

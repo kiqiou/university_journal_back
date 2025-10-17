@@ -5,12 +5,21 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_groups_list(request):
     try:
+        faculties = request.data.get("faculties", [])
+        courses = request.data.get("courses", [])
+
         groups = Group.objects.all()
+
+        if faculties:
+            groups = groups.filter(faculty__name__in=faculties)
+        if courses:
+            groups = groups.filter(course_id__in=courses)
+        
         serializer = GroupSerializer(groups, many=True)
-        return Response(serializer.data, status=200, content_type="application/json; charset=utf-8")
+        return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 

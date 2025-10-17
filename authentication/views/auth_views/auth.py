@@ -38,9 +38,12 @@ def register_user(request):
         if not role:
             return Response({'error': 'Некорректный ID роли'}, status=400)
 
-        user = User(username=username, role=role)
-        user.set_password(password)
-        user.save()
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            role=role
+        )
+
 
         if role.role.lower() == 'преподаватель':
             if not position or not bio:

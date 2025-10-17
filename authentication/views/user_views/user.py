@@ -28,15 +28,6 @@ def get_teacher_list(request):
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
     
 @api_view(['POST'])
-def get_student_list(request):
-    try:
-        student_list = User.objects.filter(role__role="Студент")
-        serializer = UserSerializer(student_list, many=True)
-        return Response(serializer.data, status=201, content_type="application/json; charset=utf-8")
-    except Exception as e:
-        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
-    
-@api_view(['POST'])
 def get_students_by_group(request):
     group_id = request.data.get('group_id')
 

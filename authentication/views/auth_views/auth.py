@@ -56,24 +56,32 @@ def register_user(request):
             if 'photo' in request.FILES:
                 profile.photo = request.FILES['photo']
                 profile.save()
-            
 
         elif role.role.lower() == 'студент':
             try:
                 group_id = int(group_id)
             except (TypeError, ValueError):
                 return Response({'error': 'Некорректный group_id'}, status=400)
+            
             if group_id:
                 group = Group.objects.filter(id=group_id).first()
                 if not group:
                     return Response({'error': 'Некорректный group_id'}, status=400)
                 user.group = group
-        
+                user.save()
+
+                students_in_group = User.objects.filter(group=group).order_by('username')
+                half = len(students_in_group) // 2
+                for i, student in enumerate(students_in_group):
+                    student.subGroup = 1 if i < half else 2
+                    student.save()
+
             if 'isHeadman' in request.data:
-                try: 
+                try:
                     user.isHeadman = bool(int(request.data['isHeadman']))
                 except (TypeError, ValueError):
-                    return Response({'error': 'Некорректный isHeadman'}, status = 400)
+                    return Response({'error': 'Некорректный isHeadman'}, status=400)
+
             disciplines = Discipline.objects.filter(groups__id=group_id)
             sessions = Session.objects.filter(course__in=disciplines)
             attendances = [

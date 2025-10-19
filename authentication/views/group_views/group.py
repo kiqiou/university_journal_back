@@ -1,6 +1,6 @@
 from authentication.models.group import Course, Faculty, Group
 from authentication.models.user import User
-from authentication.serializers.group import GroupSerializer
+from authentication.serializers.group import GroupSerializer, GroupSimpleSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -19,6 +19,16 @@ def get_groups_list(request):
             groups = groups.filter(course_id__in=courses)
         
         serializer = GroupSerializer(groups, many=True)
+        return Response(serializer.data, status=200)
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
+@api_view(['POST'])
+def get_groups_simple_list(request):
+    try:
+        groups = Group.objects.all()
+
+        serializer = GroupSimpleSerializer(groups, many=True)
         return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
@@ -85,10 +95,14 @@ def update_group(request):
             group.name = name
 
         if students_ids is not None:
-            User.objects.filter(group=group).update(group=None)
-            valid_students = User.objects.filter(id__in=students_ids)
-            for student in valid_students:
+            User.objects.filter(group=group).update(group=None, subGroup=None)
+
+            valid_students = User.objects.filter(id__in=students_ids).order_by('username')
+
+            half = len(valid_students) // 2
+            for i, student in enumerate(valid_students):
                 student.group = group
+                student.subGroup = 1 if i < half else 2
                 student.save()
 
         if faculty_id:

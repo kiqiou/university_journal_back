@@ -20,4 +20,9 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'course', 'faculty', 'students']
 
     def get_students(self, obj):
-        return [{'id': s.id, 'username': s.username, 'subGroup': s.subGroup} for s in obj.students.all()]
+        return [{'id': s.id, 'username': s.username, 'subGroup': s.subGroup, 'isHeadman': s.isHeadman} for s in obj.students.all()]
+
+class GroupSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']

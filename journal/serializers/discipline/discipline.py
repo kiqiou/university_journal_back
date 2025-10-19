@@ -10,12 +10,15 @@ class DisciplinePlanSerializer(serializers.ModelSerializer):
 
 class DisciplineSerializer(serializers.ModelSerializer):
     teachers = UserSerializer(many=True)
-    groups = GroupSerializer(many=True)
+    groups = serializers.SerializerMethodField() 
     plan_items = DisciplinePlanSerializer(many=True, source='plan_items.all')
 
     class Meta:
         model = Discipline
         fields = ['id', 'name', 'groups', 'teachers', 'plan_items', 'is_group_split', 'attestation_type']
+
+    def get_groups(self, obj):
+        return [{'id': s.id, 'name': s.name} for s in obj.groups.all()]
 
     def create(self, validated_data):
         plan_data = validated_data.pop('plan_items')

@@ -41,6 +41,15 @@ def get_students_by_group(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
+@api_view(['GET'])
+def get_students_without_group(request):
+    try:
+        students = User.objects.filter(role__role="Студент", group__isnull=True)
+        serializer = UserSerializer(students, many=True)
+        return Response(serializer.data, status=200)
+    except Exception as e:
+        return Response({'error': f'Ошибка: {str(e)}'}, status=500)
+
 @api_view(['PUT'])
 def update_user(request, user_id):
     try:

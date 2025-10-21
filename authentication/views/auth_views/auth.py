@@ -1,3 +1,4 @@
+from attestation.models import Attestation
 from authentication.models.group import Group
 from authentication.models.user import Role, TeacherProfile, User
 from journal.models.discipline import Discipline
@@ -44,7 +45,6 @@ def register_user(request):
             role=role
         )
 
-
         if role.role.lower() == 'преподаватель':
             if not position or not bio:
                 return Response({'error': 'Для преподавателя необходимы "position" и "bio"'}, status=400)
@@ -62,7 +62,7 @@ def register_user(request):
                 group_id = int(group_id)
             except (TypeError, ValueError):
                 return Response({'error': 'Некорректный group_id'}, status=400)
-            
+
             if group_id:
                 group = Group.objects.filter(id=group_id).first()
                 if not group:
@@ -76,20 +76,34 @@ def register_user(request):
                     student.subGroup = 1 if i < half else 2
                     student.save()
 
+                disciplines = Discipline.objects.filter(groups=group)
+                for discipline in disciplines:
+                    exists = Attestation.objects.filter(
+                        student=user,
+                        group=group,
+                        discipline=discipline
+                    ).exists()
+                    if not exists:
+                        Attestation.objects.create(
+                            discipline=discipline,
+                            group=group,
+                            student=user,
+                            result=''
+                        )
+
+                sessions = Session.objects.filter(course__in=disciplines)
+                attendances = [
+                    Attendance(session=session, student=user, status='', grade=None)
+                    for session in sessions
+                ]
+                Attendance.objects.bulk_create(attendances)
+
             if 'isHeadman' in request.data:
                 try:
                     user.isHeadman = bool(int(request.data['isHeadman']))
                 except (TypeError, ValueError):
                     return Response({'error': 'Некорректный isHeadman'}, status=400)
 
-            disciplines = Discipline.objects.filter(groups__id=group_id)
-            sessions = Session.objects.filter(course__in=disciplines)
-            attendances = [
-                Attendance(session=session, student=user, status='', grade=None)
-                for session in sessions
-            ]
-            Attendance.objects.bulk_create(attendances)
-            
         user.save()
         return Response(UserSerializer(user).data, status=201)
 

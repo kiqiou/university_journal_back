@@ -1,6 +1,7 @@
 from datetime import timedelta
 from pathlib import Path
 import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -71,17 +72,22 @@ ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'university_journal',
-        'USER': 'postgres',
-        'PASSWORD': '177886936',
-        'HOST': 'db',
-        'PORT': '5432',
-    }
-}
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
+# Для локальной разработки читаем .env файл
+env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file)
+
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+DATABASES = {
+    'default': env.db('DATABASE_URL')
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

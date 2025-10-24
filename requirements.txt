@@ -5,3 +5,4 @@ djangorestframework-simplejwt
 psycopg2-binary
 django-environ
 Pillow>=11.2.0
+ 

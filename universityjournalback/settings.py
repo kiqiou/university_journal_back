@@ -67,6 +67,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'universityjournalback.wsgi.application'
 
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

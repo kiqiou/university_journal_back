@@ -81,7 +81,7 @@ env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 if os.path.exists(env_file):
     environ.Env.read_env(env_file)
 
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 

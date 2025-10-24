@@ -67,28 +67,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'universityjournalback.wsgi.application'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Для локальной разработки читаем .env файл
-env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-if os.path.exists(env_file):
+# Если есть локальный .env (для dev)
+env_file = BASE_DIR / '.env'
+if env_file.exists():
     environ.Env.read_env(env_file)
 
+# Основные переменные
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])
 
 DATABASES = {
     'default': env.db('DATABASE_URL')
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

@@ -5,10 +5,9 @@ def create_dean_user(apps, schema_editor):
     Role = apps.get_model('authentication', 'Role')
     User = apps.get_model('authentication', 'User')
 
-    # Проверяем, есть ли уже пользователь с логином "dean"
     if not User.objects.filter(username='dean').exists():
         try:
-            dean_role = Role.objects.get(id=4)  # id=4 → "Декан"
+            dean_role = Role.objects.get(id=4) 
         except Role.DoesNotExist:
             print("⚠️ Роль 'Декан' (id=4) не найдена. Пользователь не был создан.")
             return
@@ -28,7 +27,7 @@ def create_dean_user(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0001_initial'), 
+        ('authentication', '0003_data_courses_and_faculties'), 
     ]
 
     operations = [

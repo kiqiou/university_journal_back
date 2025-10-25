@@ -14,15 +14,6 @@ def create_roles_and_users(apps, schema_editor):
             is_superuser=True,
             is_active=True,
         )
-    if not User.objects.filter(username='admin1').exists():
-        User.objects.create(
-            username='dean',
-            password=make_password('111111Aa_'),
-            role=Role.objects.get(id=4),
-            is_staff=True,
-            is_superuser=True,
-            is_active=True,
-        )
     if not User.objects.filter(username='admin2').exists():
         User.objects.create(
             username='admin2',

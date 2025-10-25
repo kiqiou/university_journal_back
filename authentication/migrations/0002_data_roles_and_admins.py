@@ -5,7 +5,7 @@ def create_roles_and_users(apps, schema_editor):
     Role = apps.get_model('authentication', 'Role')
     User = apps.get_model('authentication', 'User')
     Course = apps.get_model('authentication', 'Course')
-    Faculty = apps.get_model('authentication', 'Faculty'),
+    Faculty = apps.get_model('authentication', 'Faculty')
 
     roles_data = [
         (1, 'Преподаватель'),

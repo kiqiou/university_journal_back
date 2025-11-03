@@ -29,7 +29,7 @@ def add_discipline(request):
     attestation_type = request.data.get('attestation_type')
 
     if not name:
-        return Response({'error': 'Название курса обязательно'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Название дисциплины обязательно'}, status=status.HTTP_400_BAD_REQUEST)
     if not teachers_ids or not groups_ids:
         return Response({'error': 'Нужно указать преподавателей и группы'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -79,7 +79,7 @@ def add_discipline(request):
     
 @api_view(['PUT'])
 def update_discipline(request):
-    course_id = request.data.get('course_id')
+    discipline_id = request.data.get('course_id')
     name = request.data.get('name')
     is_group_split = request.data.get('is_group_split')
     teachers_ids = request.data.get('teachers', [])
@@ -89,7 +89,7 @@ def update_discipline(request):
     attestation_type = request.data.get('attestation_type')
 
     try:
-        discipline = Discipline.objects.get(id=course_id)
+        discipline = Discipline.objects.get(id=discipline_id)
 
         if name:
             discipline.name = name
@@ -148,7 +148,7 @@ def update_discipline(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Discipline.DoesNotExist:
-        return Response({'error': 'Курс не найден'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Дисциплина не найдена'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -160,8 +160,8 @@ def delete_discipline(request):
     try:
         discipline = Discipline.objects.get(id=discipline_id)
         discipline.delete()
-        return Response({'message': 'Преподаватель успешно удален'}, status=200)
+        return Response({'message': 'Дисциплина успешно удалена'}, status=200)
     except Discipline.DoesNotExist:
-        return Response({'error': 'Преподаватель не найден'}, status=404)
+        return Response({'error': 'Дисциплина не найдеа'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

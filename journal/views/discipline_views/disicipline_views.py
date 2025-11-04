@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import traceback
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_discipline_list(request):
     try:
         disciplines = Discipline.objects.all()
@@ -152,7 +152,7 @@ def update_discipline(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def delete_discipline(request):
     discipline_id = request.data.get('course_id')
     if not discipline_id:

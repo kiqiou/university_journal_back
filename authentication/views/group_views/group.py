@@ -27,7 +27,7 @@ def get_groups_list(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_groups_simple_list(request):
     try:
         groups = Group.objects.all()
@@ -170,7 +170,7 @@ def update_group(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def delete_group(request):
     group_id = request.data.get('group_id')
     if not group_id:

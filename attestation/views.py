@@ -24,7 +24,7 @@ def get_attestation(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)   
 
-@api_view(['POST'])
+@api_view(['PUT'])
 def update_attestation(request):
     attestation_id = request.data.get('attestation_id')
     average_score = request.data.get('average_score')
@@ -79,7 +79,7 @@ def add_usr(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
-@api_view(['POST'])
+@api_view(['PUT'])
 def update_usr(request):
     usr_id = request.data.get('usr_id')
     grade = request.data.get('grade')
@@ -100,7 +100,7 @@ def update_usr(request):
     except Exception as e:
         return Response({'error': f'Ошибка: {str(e)}'}, status=500)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def delete_usr(request):
     position = request.data.get('position') 
     group_id = request.data.get('group_id')

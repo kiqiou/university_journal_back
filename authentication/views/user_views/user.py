@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from authentication.models import Group
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_teacher_list(request):
     try:
         teachers_list = User.objects.filter(role__role="Преподаватель")
@@ -136,7 +136,7 @@ def update_teacher_disciplines(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def delete_user(request):
     user_id = request.data.get('user_id')
     if not user_id:

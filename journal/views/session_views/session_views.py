@@ -146,7 +146,7 @@ def update_attendance(request):
     'updated_at': timezone.localtime(attendance.updated_at).isoformat(),
     })
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def delete_session(request):
     session_id = request.data.get('session_id')
 

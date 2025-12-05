@@ -76,12 +76,10 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Если есть локальный .env (для dev)
 env_file = BASE_DIR / '.env'
 if env_file.exists():
     environ.Env.read_env(env_file)
 
-# Основные переменные
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])

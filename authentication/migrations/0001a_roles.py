@@ -14,7 +14,7 @@ def create_roles(apps, schema_editor):
     for role_id, name in roles:
         Role.objects.update_or_create(
             id=role_id,
-            defaults={"name": name}
+            defaults={"role": name}
         )
 
 class Migration(migrations.Migration):

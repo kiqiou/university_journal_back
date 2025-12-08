@@ -63,10 +63,8 @@ def register_user(request):
             except (TypeError, ValueError):
                 return Response({'error': 'Некорректный group_id'}, status=400)
 
-            if group_id:
+            if group_id is not None:
                 group = Group.objects.filter(id=group_id).first()
-                if not group:
-                    return Response({'error': 'Некорректный group_id'}, status=400)
                 user.group = group
                 user.save()
 

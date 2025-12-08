@@ -32,9 +32,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://university-journal-frontend.onrender.com",
-]
+CORS_ALLOWED_ORIGINS = True
 
 ROOT_URLCONF = 'universityjournalback.urls'
 

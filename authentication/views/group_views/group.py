@@ -50,21 +50,41 @@ def add_group(request):
         return Response({'error': 'Нужно указать факультет и курс'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        group = Group(name=name, faculty=Faculty.objects.get(id=faculty_id), course=Course.objects.get(id=course_id))
+        group = Group(
+            name=name,
+            faculty=Faculty.objects.get(id=faculty_id),
+            course=Course.objects.get(id=course_id)
+        )
         group.save()
 
         valid_students = User.objects.filter(id__in=students_ids)
         students = sorted(valid_students, key=lambda s: s.username.lower())
 
         half = len(students) // 2
-
         for i, student in enumerate(students):
-            if i < half:
-                student.subGroup = 1
-            else:
-                student.subGroup = 2
+            student.subGroup = 1 if i < half else 2
+            student.group = group
             student.save()
 
+        disciplines = Discipline.objects.filter(groups=group)
+        for discipline in disciplines:
+            for student in valid_students:
+                Attestation.objects.get_or_create(
+                    discipline=discipline,
+                    group=group,
+                    student=student,
+                    defaults={'result': ''}
+                )
+
+        sessions = Session.objects.filter(course__in=disciplines)
+        attendances_to_create = []
+        for session in sessions:
+            for student in valid_students:
+                if not Attendance.objects.filter(session=session, student=student).exists():
+                    attendances_to_create.append(
+                        Attendance(session=session, student=student, status='', grade=None)
+                    )
+        Attendance.objects.bulk_create(attendances_to_create)
 
         for student in valid_students:
             student.group = group

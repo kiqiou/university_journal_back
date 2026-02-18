@@ -132,3 +132,6 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://university-journal.onrender.com",
+]

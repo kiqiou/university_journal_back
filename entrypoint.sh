@@ -1,3 +1,4 @@
+#!/bin/sh
 set -e
 
 echo "Checking required environment variables..."
@@ -5,10 +6,10 @@ echo "Checking required environment variables..."
 required_vars="DJANGO_SECRET_KEY DATABASE_URL DJANGO_ALLOWED_HOSTS DEBUG"
 
 for var in $required_vars; do
-  if [ -z "$(eval echo \$$var)" ]; then
-    echo "Error: $var is not set!"
-    exit 1
-  fi
+    if [ -z "$(eval echo \$$var)" ]; then
+        echo "Error: $var is not set!"
+        exit 1
+    fi
 done
 
 echo "All required variables are set."

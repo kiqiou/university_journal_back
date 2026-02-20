@@ -1,31 +1,4 @@
 services:
-
-  frontend:
-    image: ghcr.io/cirruslabs/flutter:latest
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ../frontend:/app
-    working_dir: /app
-    command: flutter run -d web-server --web-port=3000 --web-hostname=0.0.0.0
-
-  db:
-    image: postgres:15
-    container_name: db
-    environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init:/docker-entrypoint-initdb.d 
-    restart: always
-    env_file:
-      - .env
-
   web:
     build: .
     container_name: django-web
@@ -34,17 +7,11 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DEBUG: ${DEBUG}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-      DATABASE_NAME: ${DATABASE_NAME}
-      DATABASE_USER: ${DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
+      DATABASE_URL: ${DATABASE_URL}
     env_file:
       - .env
 
@@ -56,8 +23,3 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "6060:80"
-    depends_on:
-      - db
-
-volumes:
-  postgres_data:

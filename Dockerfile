@@ -9,7 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# entrypoint.sh будет миграции и запуск
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 

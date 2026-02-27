@@ -38,13 +38,25 @@ class TeacherProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class StudentProfile(models.Model):
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='student_profile')
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    isHeadman = models.BooleanField(default=False)
+    subGroup = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - студент"
+
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     password = models.TextField()
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True, blank=True)
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
-    isHeadman = models.BooleanField(null=True)
-    subGroup = models.IntegerField(null=True, blank=True)
+    first_name=models.CharField(max_length=100, unique=False, null=True)
+    last_name=models.CharField(max_length=100, unique=False, null=True)
+    middle_name=models.CharField(max_length=100, unique=False, null=True)
 
     is_active = models.BooleanField(default=True) 
     is_staff = models.BooleanField(default=False) 

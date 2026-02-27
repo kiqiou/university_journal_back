@@ -1,5 +1,7 @@
-from authentication.models.user import User
+from attestation.models import Attestation
+from authentication.models.user import StudentProfile, TeacherProfile, User
 from authentication.serializers.user import UserSerializer
+from authentication.services.student_service import initialize_student_data
 from journal.models.discipline import Discipline
 from journal.models.session import Attendance, Session
 from journal.serializers.discipline.discipline import DisciplineSerializer
@@ -35,7 +37,8 @@ def get_students_by_group(request):
         return Response({'error': 'ID группы обязателен'}, status=400)
 
     try:
-        students = User.objects.filter(role__role="Студент", group__id=group_id)
+        student_profiles = StudentProfile.objects.filter(group__id=group_id)
+        students = [sp.user for sp in student_profiles]
         serializer = UserSerializer(students, many=True)
         return Response(serializer.data, status=200)
     except Exception as e:
@@ -44,7 +47,8 @@ def get_students_by_group(request):
 @api_view(['GET'])
 def get_students_without_group(request):
     try:
-        students = User.objects.filter(role__role="Студент", group__isnull=True)
+        student_profiles = StudentProfile.objects.filter(group__isnull=True)
+        students = [sp.user for sp in student_profiles]
         serializer = UserSerializer(students, many=True)
         return Response(serializer.data, status=200)
     except Exception as e:
@@ -53,65 +57,81 @@ def get_students_without_group(request):
 @api_view(['PUT'])
 def update_user(request, user_id):
     try:
-        print("🔍 Получен user_id:", user_id)
-        user = User.objects.get(id=user_id)
-    except (User.DoesNotExist):
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.select_related(
+            'teacher_profile',
+            'student_profile'
+        ).get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
 
-    username = request.data.get('username', '').strip()
+    username = request.data.get('username')
     group_id = request.data.get('group_id')
     position = request.data.get('position')
     bio = request.data.get('bio')
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    middle_name = request.data.get('middle_name')
     isHeadman = request.data.get('isHeadman')
 
     if username and username != user.username:
-        if User.objects.filter(username__iexact=username).exclude(id=user.id).exists():
-            return Response({'error': 'Пользователь с таким именем уже существует'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(username__iexact=username)\
+                .exclude(id=user.id).exists():
+            return Response(
+                {'error': 'Пользователь с таким именем уже существует'},
+                status=400
+            )
         user.username = username
     
-    if position:
-        user.teacher_profile.position = position
-        user.teacher_profile.save()
-    
-    if bio:
-        user.teacher_profile.bio = bio
-        user.teacher_profile.save()
+    if first_name is not None:
+            user.first_name = first_name
 
-    if group_id:
-        try:
-            group = Group.objects.get(id=group_id)
+    if last_name is not None:
+        user.last_name = last_name
 
-            old_group_id = user.group.id if user.group else None
-            if old_group_id != group.id:
-                user.group = group
-                user.save()
+    if middle_name is not None:
+        user.middle_name = middle_name
 
+    if hasattr(user, 'teacher_profile'):
+        teacher = user.teacher_profile
+
+        if position is not None:
+            teacher.position = position
+
+        if bio is not None:
+            teacher.bio = bio
+
+        if 'photo' in request.FILES:
+            teacher.photo = request.FILES['photo']
+
+        teacher.save()
+
+    if hasattr(user, 'student_profile'):
+        student = user.student_profile
+        group_changed = False
+
+        if group_id:
+            try:
+                new_group = Group.objects.get(id=group_id)
+                if student.group != new_group:
+                    student.group = new_group
+                    student.subGroup = None
+                    group_changed = True
+            except Group.DoesNotExist:
+                return Response({'error': 'Group not found'}, status=404)
+
+        if isHeadman is not None:
+            try:
+                student.isHeadman = bool(int(isHeadman))
+            except (TypeError, ValueError):
+                return Response({'error': 'Некорректный isHeadman'}, status=400)
+
+        student.save()
+
+        if group_changed:
             Attendance.objects.filter(student=user).delete()
+            Attestation.objects.filter(student=user).delete()
+            initialize_student_data(student)
 
-            disciplines = Discipline.objects.filter(groups__id=group.id)
-            sessions = Session.objects.filter(course__in=disciplines)
-
-            attendances = [
-                Attendance(session=session, student=user, status='', grade=None)
-                for session in sessions
-            ]
-            Attendance.objects.bulk_create(attendances)
-
-        except Group.DoesNotExist:
-            return Response({'error': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-    if 'photo' in request.FILES:
-        user.teacher_profile.photo = request.FILES['photo']
-        user.teacher_profile.save()
-    
-        
-    if 'isHeadman' in request.data:
-        try: 
-            user.isHeadman = bool(int(request.data['isHeadman']))
-        except (TypeError, ValueError):
-            return Response({'error': 'Некорректный isHeadman'}, status = 400)
-    
     user.save()
 
     return Response({'message': 'User updated successfully'})

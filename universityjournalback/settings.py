@@ -61,6 +61,8 @@ STORAGES = {
     },
 }
 
+STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticCloudinaryStorage'
+
 MEDIA_URL = '/media/'
 
 WSGI_APPLICATION = 'universityjournalback.wsgi.application'

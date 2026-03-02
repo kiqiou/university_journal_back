@@ -12,6 +12,7 @@ services:
       DEBUG: ${DEBUG}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
       DATABASE_URL: ${DATABASE_URL}
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
     env_file:
       - .env
 

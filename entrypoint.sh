@@ -3,7 +3,7 @@ set -e
 
 echo "Checking required environment variables..."
 
-required_vars="DJANGO_SECRET_KEY DATABASE_URL DJANGO_ALLOWED_HOSTS DEBUG"
+required_vars="DJANGO_SECRET_KEY DATABASE_URL DJANGO_ALLOWED_HOSTS DEBUG CLOUDINARY_URL"
 
 for var in $required_vars; do
     if [ -z "$(eval echo \$$var)" ]; then

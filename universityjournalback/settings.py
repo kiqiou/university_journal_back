@@ -137,5 +137,4 @@ SIMPLE_JWT = {
 
 CSRF_TRUSTED_ORIGINS = [
     "https://university-journal.onrender.com",
-    "https://university-journal-1.onrender.com"
 ]

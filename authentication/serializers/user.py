@@ -83,16 +83,13 @@ class RegisterSerializer(serializers.Serializer):
                 teacher_profile.save()
 
         elif role.role.lower() == 'студент':
-
             group = Group.objects.get(id=validated_data['group_id'])
-
             student_profile = StudentProfile.objects.create(
                 user=user,
                 group=group,
-                isHeadman=validated_data.get('isHeadman', False)
+                isHeadman=validated_data.get('isHeadman', False),
+                subGroup=None  
             )
-
-            initialize_student_data(student_profile)
-
+            initialize_student_data(student_profile)  
         return user
 

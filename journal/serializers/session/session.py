@@ -15,10 +15,11 @@ class SessionWithAttendanceSerializer(serializers.ModelSerializer):
         attendance_qs = Attendance.objects.filter(session=obj)
 
         if group_id:
-            attendance_qs = attendance_qs.filter(student__group_id=group_id)
-
+            attendance_qs = attendance_qs.filter(
+                student__student_profile__group_id=group_id
+            )
         return AttendanceSerializer(attendance_qs, many=True).data
-
+    
 class SessionSerializer(serializers.ModelSerializer):
     course = DisciplineSerializer(required=False, allow_null=True)
     class Meta:

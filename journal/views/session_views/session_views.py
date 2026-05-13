@@ -19,45 +19,47 @@ def get_attendance(request):
         if course_id:
             qs = qs.filter(course_id=course_id)
         if group_id:
-            qs = qs.filter(group_id=group_id) 
+            qs = qs.filter(group__id=group_id) 
 
-        serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})  
+        serializer = SessionWithAttendanceSerializer(qs, many=True, context={'group_id': group_id})
         return Response(serializer.data, status=200)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
-
+    
 @api_view(['POST'])
 def add_session(request):
-    type = request.data.get('type')
+    type_ = request.data.get('type')  
     date = request.data.get('date')
     course_id = request.data.get('course_id')
     group_id = request.data.get('group_id')
     subGroup = request.data.get('subGroup')
 
-    if not course_id or not type or not date or not group_id:
+    if not course_id or not type_ or not date or not group_id:
         return Response({'error': 'Айди курса, тип, дата и группа обязательны'}, status=400)
 
     try:
-        discipline = Discipline.objects.prefetch_related('groups').filter(id=course_id).first()
+        discipline = Discipline.objects.filter(id=course_id).first()
         if not discipline:
             return Response({'error': 'Курс не найден'}, status=404)
 
         session = Session.objects.create(
-            type=type,
+            type=type_,
             date=date,
             course=discipline,
-            group_id=group_id,
+            group_id=group_id, 
             subGroup=subGroup,
         )
 
-        group_ids = discipline.groups.values_list('id', flat=True)
-        students = User.objects.filter(group__in=discipline.groups.all(),role__role='Студент')
+        students = User.objects.filter(
+            role__role='Студент',
+            student_profile__group_id=group_id 
+        )
 
         attendances = [
-            Attendance(session=session, student=student, status='', grade=None)
+            Attendance(session=session, student=student, status=' ', grade=None)
             for student in students
         ]
-        Attendance.objects.bulk_create(attendances)
+        Attendance.objects.bulk_create(attendances, ignore_conflicts=True)
 
         return Response(SessionSerializer(session).data, status=201)
 
